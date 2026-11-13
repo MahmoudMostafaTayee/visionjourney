@@ -317,8 +317,7 @@
     const total = steps.length;
     let current = 0;
 
-    /* A step with a check stays closed until the check is answered, the way the
-       Linux Journey lessons put the question inline and hold Continue until then. */
+    /* A step with a check stays closed until that check is answered. */
     function gateOpen(index) {
       return !steps[index].querySelector("[data-quiz]:not(.is-solved)");
     }

@@ -2,8 +2,8 @@
 """
 Build Vision Journey: a static, dependency-free learning site.
 
-Content lives in courses/*.yml and lessons/<lang>/<course>/<lesson>.md,
-using the Linux Journey schema plus three Vision Journey directives:
+Content lives in courses/*.yml and lessons/<lang>/<course>/<lesson>.md as
+markdown with front matter and three Vision Journey directives:
 
     :::demo{id="conv" title="Convolution explorer"} body :::     interactive lab
     :::model{src="resnet18" title="ResNet-18"} :::               ONNX graph viewer
@@ -508,7 +508,7 @@ def layout(
 <footer class="footer">
   <div class="footer__inner">
     <p><strong>Vision Journey</strong> — an open curriculum for computer vision, from the camera obscura to foundation models.</p>
-    <p class="footer__meta">Content licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> · Code MIT · Layout inspired by <a href="https://labex.io/linuxjourney" target="_blank" rel="noopener">Linux Journey</a></p>
+    <p class="footer__meta">Content licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> · Code MIT</p>
   </div>
 </footer>
 <div class="search" data-search hidden>
