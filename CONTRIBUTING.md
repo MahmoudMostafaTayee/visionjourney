@@ -17,7 +17,9 @@ site.yml                                site metadata, levels, timeline
 courses/<course-id>.yml                 course metadata
 lessons/<lang>/<course-id>/<lesson>.md  lesson content
 models/                                 exported ONNX + graph JSON + catalog
-tools/build.py                          static site generator
+engine/tutorial.py                      tutorial page presenter (steps, Continue)
+engine/blocks.py                        splits rendered lessons into blocks
+tools/build.py                          static site baker
 tools/export_models.py                  PyTorch → ONNX → graph JSON
 assets/{css,js}/                        presentation and interaction
 ```

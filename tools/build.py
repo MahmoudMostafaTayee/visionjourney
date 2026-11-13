@@ -28,6 +28,10 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 LANG = "en"
 
+# The content engine lives beside the content, not inside this script.
+sys.path.insert(0, str(ROOT))
+from engine.tutorial import present_tutorial  # noqa: E402
+
 
 def asset_version(rel: str) -> str:
     """Short content hash appended to asset URLs so edits are never hidden by browser cache."""
@@ -809,6 +813,13 @@ def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, le
         nav += ('<a class="pager__link pager__link--next" href="../../path.html">'
                 '<span>Curriculum complete</span><strong>Review the guided path</strong></a>')
 
+    # The engine presents the tutorial: one paragraph (with the heading it belongs
+    # to) per step, checks inline, Continue centred underneath. app.js only switches.
+    finish_href = f'../{next_pair[0]["slug"]}/{next_pair[1]["slug"]}.html' if next_pair else "../../path.html"
+    finish_label = "Next lesson" if next_pair else "Back to the path"
+    tutorial = present_tutorial(content, finish_href=finish_href, finish_label=finish_label)
+    steps_html, stepper = tutorial.steps_html, tutorial.controls_html
+
     body = f"""<div class="shell">
 {sidebar(cfg, courses, lessons, course["slug"], lesson["slug"], "../../")}
 <div class="shell__content">
@@ -824,7 +835,8 @@ def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, le
       <span class="chip__box" aria-hidden="true"></span><span data-complete-label>Mark as complete</span>
     </button>
   </header>
-  <div class="prose">{content}</div>
+  <div class="prose">{steps_html}</div>
+  {stepper}
   <footer class="lesson__foot">
     <p class="lesson__license">Found an error or want to go deeper? <a href="https://github.com/" target="_blank" rel="noopener">Open a PR</a> — this curriculum is versioned like software.</p>
     <nav class="pager" aria-label="Lesson navigation">{nav}</nav>

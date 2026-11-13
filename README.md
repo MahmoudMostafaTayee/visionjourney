@@ -90,8 +90,11 @@ visionjourney/
 │   ├── *.onnx                   # exported, inspectable models
 │   ├── graphs/*.json            # shapes + edges for the offline explorer
 │   └── catalog.json
+├── engine/                      # content engine — knows nothing about vision
+│   ├── blocks.py                # split rendered lesson HTML into blocks
+│   └── tutorial.py              # the tutorial page presenter (steps + controls)
 ├── tools/
-│   ├── build.py                 # dependency-free static site generator
+│   ├── build.py                 # static site baker: content + engine → site/
 │   └── export_models.py         # PyTorch → ONNX → graph JSON
 ├── assets/css/style.css
 ├── assets/js/{app,viz,graph}.js
@@ -99,6 +102,16 @@ visionjourney/
 ```
 
 The content schema deliberately follows Linux Journey's conventions: `courses/<id>.yml`, `lessons/<lang>/<course>/<lesson>.md`, YAML front matter, and `:::single-choice` checks. A lesson's path must agree with its `lesson_id`, `course_id` and `lang`.
+
+## Engine and content
+
+Content and presentation are separate. `lessons/` and `courses/` hold only writing — markdown, front matter and checks — and never mention layout. `engine/` holds the reader:
+
+- `engine/blocks.py` splits rendered lesson HTML into top-level blocks (paragraph, heading, list, code, figure, callout, check).
+- `engine/tutorial.py` is the tutorial page presenter. `present_tutorial(content, finish_href=…, finish_label=…)` groups the blocks into steps — one paragraph each, with its heading and any list, code, figure or check that belongs to it — and returns the step markup plus the controls. It decides nothing about the site: the caller supplies where the lesson ends.
+- `tools/build.py` is the baker. It loads content, renders markdown, hands the HTML to the presenter, and writes `site/`.
+
+Adding a new presentation module (a quiz-only drill, a printable view) means adding a file under `engine/`; it never requires touching lesson text. Adding lessons never requires touching the engine.
 
 ## Lesson directives
 
@@ -131,6 +144,7 @@ Available model ids: `demo-cnn`, `resnet-mini`, `vit-tiny`, `unet-mini`, `mobile
 ## Features
 
 - **Guided path** at `path.html`: all 39 lessons in one numbered sequence with a progress bar and a continue button that jumps to the next unfinished lesson. Lesson pages link to the previous and next lesson *across course boundaries*, so you never have to go back to a menu to keep going.
+- **Paragraph-by-paragraph lessons, Linux Journey style**: the engine presents one paragraph at a time (with whatever heading, list, code, figure or check belongs to it), a centred **Continue** button below it, and a progress meter. When a step ends in a check, Continue is disabled until the check is answered; a wrong option is eliminated so you can try again. The outline jumps to the step holding the heading, the footer pager appears only at the end, and without JavaScript the whole lesson renders as a single page.
 - **Wide three-column lesson layout**: course navigation, a generously sized prose column, and an on-this-page outline that collapses below 1120px.
 - **Progress tracking** in `localStorage`: completed lessons and solved checks persist per browser.
 - **Client-side search** over lesson text, courses and snippets, with keyboard navigation (`⌘K` or `/`).

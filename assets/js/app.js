@@ -98,22 +98,29 @@
   /* ----------------------------------------------------------------- quizzes */
   const solved = new Set(store.get("quizzes", []));
 
+  /* A wrong option is eliminated but the rest stay answerable: the lesson holds
+     Continue until the check is solved, so locking the question would trap the reader. */
   function settle(quiz, chosen, correct, explanation) {
     const buttons = [...quiz.querySelectorAll(".quiz__option")];
-    buttons.forEach((b) => {
-      b.disabled = true;
-      const isCorrect = b.dataset.correct === "true";
-      if (isCorrect) b.classList.add("is-correct");
-      else if (b === chosen) b.classList.add("is-wrong");
-      else b.classList.add("is-dim");
-    });
     const feedback = quiz.querySelector(".quiz__feedback");
+    if (correct) {
+      buttons.forEach((b) => {
+        b.disabled = true;
+        if (b.dataset.correct === "true") b.classList.add("is-correct");
+        else b.classList.add("is-dim");
+      });
+      quiz.classList.add("is-solved");
+    } else if (chosen) {
+      chosen.disabled = true;
+      chosen.classList.add("is-wrong");
+      chosen.classList.remove("is-dim");
+    }
     if (feedback && explanation) {
       feedback.hidden = false;
-      feedback.innerHTML =
-        (correct ? "<strong>Correct.</strong> " : "<strong>Not quite.</strong> ") + explanation;
+      feedback.innerHTML = correct
+        ? `<strong>Correct.</strong> ${explanation}`
+        : `<strong>Not quite.</strong> ${explanation} <em>Try another option.</em>`;
     }
-    if (correct) quiz.classList.add("is-solved");
   }
 
   document.querySelectorAll("[data-quiz]").forEach((quiz) => {
@@ -139,6 +146,7 @@
         if (correct) {
           solved.add(id);
           store.set("quizzes", [...solved]);
+          document.dispatchEvent(new CustomEvent("vj:quiz-solved", { detail: { id } }));
         }
       });
     });
@@ -289,5 +297,102 @@
   renderMath();
   window.addEventListener("load", renderMath);
 
+  /* ------------------------------------------------------------------- steps */
+  /* The engine ships a lesson as steps. Show one at a time, keep the outline
+     working for hidden steps, hold Continue while a step's check is unanswered,
+     and reveal the footer pager only once the last step is reached. */
+  function initSteps() {
+    const lesson = document.querySelector(".lesson[data-lesson]");
+    const steps = [...document.querySelectorAll(".prose > .step")];
+    const bar = document.querySelector("[data-stepctl]");
+    if (!lesson || steps.length < 2 || !bar) return;
+
+    const prevBtn = bar.querySelector("[data-step-prev]");
+    const nextBtn = bar.querySelector("[data-step-next]");
+    const finish = bar.querySelector("[data-step-finish]");
+    const gate = bar.querySelector("[data-step-gate]");
+    const posEl = bar.querySelector("[data-step-pos]");
+    const meter = bar.querySelector("[data-step-meter]");
+    const nameEl = bar.querySelector("[data-step-name]");
+    const total = steps.length;
+    let current = 0;
+
+    /* A step with a check stays closed until the check is answered, the way the
+       Linux Journey lessons put the question inline and hold Continue until then. */
+    function gateOpen(index) {
+      return !steps[index].querySelector("[data-quiz]:not(.is-solved)");
+    }
+
+    function syncGate() {
+      const open = gateOpen(current);
+      nextBtn.disabled = !open;
+      finish.setAttribute("aria-disabled", open ? "false" : "true");
+      if (gate) gate.hidden = open;
+      return open;
+    }
+
+    function show(index, { scroll = false } = {}) {
+      current = Math.max(0, Math.min(total - 1, index));
+      steps.forEach((step, i) => {
+        step.hidden = i !== current;
+        step.classList.toggle("is-current", i === current);
+      });
+      lesson.classList.add("js-steps");
+      lesson.classList.toggle("is-final", current === total - 1);
+      bar.hidden = false;
+      posEl.textContent = String(current + 1);
+      meter.style.width = `${((current + 1) / total) * 100}%`;
+      nameEl.textContent = steps[current].dataset.stepTitle || (current === 0 ? "Introduction" : "");
+      prevBtn.disabled = current === 0;
+      nextBtn.hidden = current === total - 1;
+      finish.hidden = current !== total - 1;
+      syncGate();
+      if (scroll) {
+        const anchor = (steps[current].querySelector("h2, h3") || steps[current]).getBoundingClientRect();
+        window.scrollTo({ top: Math.max(0, anchor.top + window.scrollY - 88), behavior: "smooth" });
+      }
+    }
+
+    prevBtn.addEventListener("click", () => show(current - 1, { scroll: true }));
+    nextBtn.addEventListener("click", () => {
+      if (syncGate()) show(current + 1, { scroll: true });
+    });
+    finish.addEventListener("click", (event) => {
+      if (!syncGate()) event.preventDefault();
+    });
+    document.addEventListener("vj:quiz-solved", syncGate);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (/input|textarea|select/i.test(document.activeElement?.tagName || "")) return;
+      const search = document.querySelector(".search");
+      if (search && !search.hidden) return;
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        if (syncGate()) show(current + 1, { scroll: true });
+      }
+      if (event.key === "ArrowLeft") { event.preventDefault(); show(current - 1, { scroll: true }); }
+    });
+
+    /* Outline links point at headings in steps that may be hidden. */
+    document.querySelectorAll('.toc a[href^="#"]').forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        const step = target?.closest(".step");
+        if (!target || !step) return;
+        event.preventDefault();
+        show(steps.indexOf(step));
+        target.scrollIntoView({ block: "start", behavior: "smooth" });
+        try { history.replaceState(null, "", link.hash); } catch { /* file:// or blocked history */ }
+      });
+    });
+
+    const hashed = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    const hashedStep = hashed?.closest(".step");
+    show(hashedStep ? steps.indexOf(hashedStep) : 0);
+    if (hashed && hashedStep) hashed.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+
+  initSteps();
   paintProgress();
 })();
