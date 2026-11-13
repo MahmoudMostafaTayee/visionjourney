@@ -1,0 +1,18 @@
+id: image-formation
+category:
+  id: foundations
+order_index: 1
+translations:
+  en:
+    title: "Image Formation & Digital Images"
+    description: "Light, lenses, sensors and sampling: the physics and signal processing that decide what information a pixel can possibly contain."
+    faqs:
+      - question: "Is this course about photography or about algorithms?"
+        answer: "It is about the measurement model. Every downstream algorithm inherits the geometry, noise and quantisation of the capture process, so this course establishes what an image is before anything tries to interpret it."
+      - question: "Will I be writing code?"
+        answer: "The labs are interactive rather than notebook-based: you manipulate focal length, exposure, threshold and sampling to see the failure modes directly. The mathematics is written out so you can implement it."
+      - question: "How much physics is required?"
+        answer: "Only geometric optics and a working notion of radiometry. The pinhole and thin-lens models, field of view, and the relationship between focal length, sensor size and magnification are enough."
+    meta_title: "Image Formation and Digital Images - Vision Journey"
+    meta_description: "Learn pinhole and lens projection, field of view, sensors, colour, quantisation, sampling and the anatomy of a digital image for computer vision."
+    meta_keywords: "image formation, pinhole camera, thin lens, field of view, Bayer filter, quantisation, Nyquist, digital image"

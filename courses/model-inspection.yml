@@ -1,0 +1,18 @@
+id: model-inspection
+category:
+  id: frontier
+order_index: 11
+translations:
+  en:
+    title: "Model Inspection & Interpretability"
+    description: "Open the graph, read the shapes, attribute the prediction and profile the cost. Netron, saliency, Grad-CAM and the difference between explanation and evidence."
+    faqs:
+      - question: "What is Netron and why use it here?"
+        answer: "Netron is an open-source viewer for ONNX, TFLite, CoreML and PyTorch files. It renders the computation graph, tensor shapes, operator attributes and weights, which makes export bugs and architectural assumptions visible."
+      - question: "Do saliency maps tell me why a model predicted something?"
+        answer: "Not reliably. They show local sensitivity of the output to the input, which can disagree with the model's actual reasoning. Treat them as one diagnostic among several, validated against interventions."
+      - question: "Why does efficiency belong in an interpretability course?"
+        answer: "Because where the compute goes is part of how the model works. FLOPs, memory traffic and latency profiles explain design choices that accuracy numbers alone cannot."
+    meta_title: "Model Inspection and Interpretability - Vision Journey"
+    meta_description: "Inspect ONNX computation graphs with Netron, attribute predictions with Grad-CAM and integrated gradients, and profile FLOPs, latency and memory."
+    meta_keywords: "Netron, ONNX graph, Grad-CAM, saliency, integrated gradients, interpretability, FLOPs, model profiling"

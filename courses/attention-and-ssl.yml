@@ -1,0 +1,18 @@
+id: attention-and-ssl
+category:
+  id: deep-vision
+order_index: 8
+translations:
+  en:
+    title: "Attention & Self-Supervision"
+    description: "Transformers, contrastive learning, masked modelling and vision-language pretraining: how modern vision models learn without labels."
+    faqs:
+      - question: "What does attention actually compute?"
+        answer: "A content-dependent weighted average. Queries and keys produce similarity scores, softmax turns them into weights, and values are averaged. For images that means every patch can gather evidence from every other patch."
+      - question: "Why is self-supervision such a big deal?"
+        answer: "Labels are the bottleneck. Contrastive and masked objectives learn transferable representations from unlabelled images, and the resulting encoders fine-tune better than supervised ones on many downstream tasks."
+      - question: "How do vision-language models connect to this?"
+        answer: "CLIP aligns an image encoder and a text encoder in one embedding space using a contrastive objective, which turns language into a zero-shot classifier and a supervision signal for everything downstream."
+    meta_title: "Attention, Self-Supervision and Vision-Language Models - Vision Journey"
+    meta_description: "Learn scaled dot-product attention, vision transformers, contrastive learning, masked autoencoders and CLIP-style vision-language pretraining."
+    meta_keywords: "vision transformer, self-attention, Swin, SimCLR, MoCo, DINO, MAE, CLIP, multimodal"

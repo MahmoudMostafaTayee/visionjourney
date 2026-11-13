@@ -1,0 +1,18 @@
+id: features-and-geometry
+category:
+  id: foundations
+order_index: 4
+translations:
+  en:
+    title: "Features, Matching & Geometry"
+    description: "Corners, SIFT, RANSAC, epipolar geometry and stereo: how images of the same scene are tied together into measurements and 3D structure."
+    faqs:
+      - question: "Why learn SIFT if learned features outperform it?"
+        answer: "SIFT is the clearest complete example of invariant design: scale space, orientation assignment, descriptor normalisation. The same reasoning underlies modern learned local features and the geometry that consumes them."
+      - question: "How is RANSAC still used?"
+        answer: "It is the standard robust estimator for homographies, fundamental matrices and PnP inside SLAM, AR and photogrammetry, because it handles gross outliers that least squares cannot."
+      - question: "Do I need a second camera for this course?"
+        answer: "No. The stereo lab simulates the geometry. The derivations are what matter: disparity, triangulation and the epipolar constraint work identically on real calibrated pairs."
+    meta_title: "Features, Matching and Geometry - Vision Journey"
+    meta_description: "Learn Harris corners, SIFT, feature matching, RANSAC, homographies, epipolar geometry, calibration and stereo triangulation."
+    meta_keywords: "Harris corner, SIFT, feature matching, RANSAC, homography, epipolar geometry, stereo vision, triangulation"

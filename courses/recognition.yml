@@ -1,0 +1,18 @@
+id: recognition
+category:
+  id: deep-vision
+order_index: 7
+translations:
+  en:
+    title: "Recognition: Classification, Detection, Segmentation"
+    description: "The three core recognition tasks, their losses, their evaluation protocols and the architecture families that solve them."
+    faqs:
+      - question: "Why are detection and segmentation separate lessons from classification?"
+        answer: "Because the output space changes from one label per image to a variable-length set of boxes or a label per pixel. That changes the loss, the assignment procedure, the augmentation and the metric."
+      - question: "Do I need to train a detector to understand this?"
+        answer: "No, but you should be able to compute IoU, non-maximum suppression, average precision and Dice by hand. The labs let you manipulate boxes and thresholds to see how the metrics respond."
+      - question: "Which modern models should I know?"
+        answer: "YOLO-family one-stage detectors, Faster R-CNN for two-stage reasoning, DETR for set prediction, U-Net for dense prediction, Mask R-CNN for instances and SAM for promptable segmentation."
+    meta_title: "Image Classification, Detection and Segmentation - Vision Journey"
+    meta_description: "Learn softmax classification, transfer learning, YOLO and DETR detection, U-Net and Mask R-CNN segmentation, IoU, NMS and mAP evaluation."
+    meta_keywords: "image classification, object detection, YOLO, DETR, semantic segmentation, U-Net, Mask R-CNN, mAP, IoU"

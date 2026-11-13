@@ -1,0 +1,18 @@
+id: math-for-vision
+category:
+  id: foundations
+order_index: 2
+translations:
+  en:
+    title: "Mathematics for Vision"
+    description: "Tensors, linear algebra, automatic differentiation and optimisation — the four tools that every paper in this curriculum assumes you can use."
+    faqs:
+      - question: "How much linear algebra do I need?"
+        answer: "You should be comfortable with matrix multiplication, rank, eigen-decomposition and the SVD. The lesson rebuilds PCA from the covariance matrix so the abstractions connect to a vision task."
+      - question: "Why derive backpropagation by hand in 2026?"
+        answer: "Because debugging a broken gradient requires knowing what the framework computes. Understanding reverse-mode differentiation is also what lets you read custom-loss papers and write CUDA kernels later."
+      - question: "Is convex optimisation still relevant in the deep-learning era?"
+        answer: "Yes: it underpins calibration, bundle adjustment, SVM-era vision, optimal transport losses and the analysis of why stochastic optimisation behaves the way it does."
+    meta_title: "Mathematics for Computer Vision - Vision Journey"
+    meta_description: "Build the linear algebra, calculus, automatic differentiation and optimisation foundations needed to read and reproduce computer vision research."
+    meta_keywords: "linear algebra for vision, SVD, PCA, backpropagation, automatic differentiation, gradient descent, Adam"

@@ -1,0 +1,18 @@
+id: generative-and-3d
+category:
+  id: deep-vision
+order_index: 9
+translations:
+  en:
+    title: "Generative & 3D Vision"
+    description: "VAEs, GANs, diffusion and neural fields: models that synthesise images and reconstruct the three-dimensional world."
+    faqs:
+      - question: "What is the difference between discriminative and generative vision?"
+        answer: "Discriminative models estimate a label given an image; generative models estimate the image distribution itself, which lets them sample, edit, inpaint and provide priors for inverse problems."
+      - question: "Why does diffusion dominate image generation now?"
+        answer: "It replaces an unstable adversarial game with a stable regression objective, scales predictably with data and compute, and composes naturally with guidance and latent representations."
+      - question: "How does NeRF relate to Gaussian splatting?"
+        answer: "Both are neural or learned scene representations rendered from novel viewpoints. NeRF integrates density and colour along rays; Gaussian splatting rasterises explicit anisotropic Gaussians, which is far faster at render time."
+    meta_title: "Generative and 3D Computer Vision - Vision Journey"
+    meta_description: "Understand VAEs, GANs, diffusion models, classifier-free guidance, NeRF, Gaussian splatting and depth-based 3D reconstruction."
+    meta_keywords: "VAE, GAN, diffusion model, DDPM, latent diffusion, NeRF, Gaussian splatting, novel view synthesis"

@@ -1,0 +1,18 @@
+id: neural-networks-from-scratch
+category:
+  id: deep-vision
+order_index: 5
+translations:
+  en:
+    title: "Neural Networks from Scratch"
+    description: "Build a multilayer perceptron with NumPy, derive backpropagation on paper, then learn the training dynamics that separate a working model from a broken one."
+    faqs:
+      - question: "Do I need a GPU for this course?"
+        answer: "No. Every network here is small enough to train on a CPU in seconds, which is the point: you should be able to read every number in the forward and backward pass."
+      - question: "Which framework is used?"
+        answer: "The from-scratch lesson uses NumPy only. Later courses use PyTorch, and the exported ONNX models in the Model Lab were produced with it. The concepts transfer to JAX or TensorFlow directly."
+      - question: "Why does a vision curriculum start with MLPs?"
+        answer: "Because convolution is a constrained linear layer. Understanding gradients, initialisation and normalisation on a dense network makes the convolutional and attention variants far easier to reason about."
+    meta_title: "Neural Networks from Scratch - Vision Journey"
+    meta_description: "Implement an MLP in NumPy, derive backpropagation, and learn initialisation, normalisation, regularisation and debugging for deep vision models."
+    meta_keywords: "perceptron, multilayer perceptron, backpropagation, autograd, cross-entropy, batch normalisation, training deep networks"

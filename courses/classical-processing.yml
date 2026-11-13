@@ -1,0 +1,18 @@
+id: classical-processing
+category:
+  id: foundations
+order_index: 3
+translations:
+  en:
+    title: "Classical Image Processing"
+    description: "Convolution, filtering, edges, morphology and histograms: the linear and morphological operators that still preprocess every modern pipeline."
+    faqs:
+      - question: "Are these algorithms obsolete now that we have deep learning?"
+        answer: "No. Gaussian blur, Sobel operators, morphological cleanup and CLAHE appear inside augmentation pipelines, data loaders, saliency preprocessing and industrial inspection systems where deterministic behaviour matters."
+      - question: "What does the convolution lab demonstrate?"
+        answer: "That a 3x3 kernel is a local linear operator whose response is a feature map. Changing the kernel turns the same code into blur, sharpening, edge detection or embossing."
+      - question: "Which edge detector should I actually use?"
+        answer: "Canny remains the default when you need thin, connected edges with hysteresis. The lesson derives its four stages so you can tune them rather than treat it as a black box."
+    meta_title: "Classical Image Processing - Vision Journey"
+    meta_description: "Master convolution, Gaussian filtering, Sobel and Canny edges, morphology, thresholding and histogram equalisation with interactive labs."
+    meta_keywords: "convolution, image filtering, Sobel, Canny edge detection, morphology, Otsu thresholding, CLAHE"

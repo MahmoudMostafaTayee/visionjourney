@@ -1,0 +1,18 @@
+id: convolutional-networks
+category:
+  id: deep-vision
+order_index: 6
+translations:
+  en:
+    title: "Convolutional Networks"
+    description: "The convolution operator as an architectural prior: parameter sharing, hierarchical features, residual connections and the designs that defined a decade."
+    faqs:
+      - question: "Are CNNs still relevant with vision transformers everywhere?"
+        answer: "Yes. Convolutions dominate on the edge, in small-data regimes, in dense prediction and as the local branch of hybrid models. Their inductive bias is a feature, not a limitation."
+      - question: "What is the single most important architectural idea?"
+        answer: "The residual connection. It turns depth from a liability into an asset by giving gradients an identity path, and it enabled the jump from eight layers to hundreds."
+      - question: "Will I actually see inside these networks?"
+        answer: "Yes. The Model Lab renders exported ResNet, U-Net and ViT graphs with real tensor shapes, and the lessons embed them next to the theory so you can trace a 224x224 input to a 7x7 feature map."
+    meta_title: "Convolutional Neural Networks - Vision Journey"
+    meta_description: "Understand convolution arithmetic, pooling, receptive fields, residual networks and the landmark CNN architectures from LeNet to EfficientNet."
+    meta_keywords: "CNN, convolution arithmetic, receptive field, ResNet, VGG, MobileNet, EfficientNet, inductive bias"

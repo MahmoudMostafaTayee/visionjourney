@@ -1,0 +1,57 @@
+title: "Vision Journey"
+tagline: "From the camera obscura to foundation models"
+description: "A free, deep computer vision curriculum: image formation, classical vision, deep learning, 3D, generative models and research practice — with interactive labs and real ONNX architectures."
+
+nav:
+  - id: home
+    label: "Curriculum"
+    href: "index.html"
+  - id: path
+    label: "Guided path"
+    href: "path.html"
+  - id: journey
+    label: "Levels"
+    href: "levels/foundations.html"
+  - id: models
+    label: "Model lab"
+    href: "models.html"
+  - id: resources
+    label: "Resources"
+    href: "resources.html"
+
+levels:
+  - id: foundations
+    rank: "I"
+    name: "Foundations"
+    tagline: "How images are made, measured and reasoned about"
+    description: "Start where the field started: light, lenses, sensors, pixels — then the mathematics that turns an image into geometry, and the classical algorithms that still run on every phone. No prior vision knowledge assumed; undergraduate linear algebra and calculus help."
+  - id: deep-vision
+    rank: "II"
+    name: "Deep Vision"
+    tagline: "Learning representations from pixels"
+    description: "Build a neural network from first principles, then the architectures that defined modern vision: convolutions, residual and attention networks, detection and segmentation heads, self-supervision, generative models and neural 3D. This is the level that makes you employable and paper-literate."
+  - id: frontier
+    rank: "III"
+    name: "Research Frontier"
+    tagline: "Producing knowledge, not just consuming it"
+    description: "How to read, reproduce, inspect, stress-test and publish vision research. Evaluation protocol, interpretability, robustness, efficiency, deployment, and the ethical questions that decide whether a model should ship at all."
+
+timeline:
+  - year: "1021"
+    event: "Ibn al-Haytham's *Book of Optics* formalises the camera obscura and intromission."
+  - year: "1839"
+    event: "Daguerre and Talbot fix an image permanently; photography becomes an instrument."
+  - year: "1959"
+    event: "Hubel & Wiesel find orientation-selective receptive fields in cat visual cortex."
+  - year: "1966"
+    event: "The MIT Summer Vision Project tries to 'attach a computer to a camera and describe what it sees'."
+  - year: "1980"
+    event: "Marr's *Vision* frames vision as inverse optics; SIFT and stereo follow in the decade."
+  - year: "1998"
+    event: "LeCun's LeNet-5 reads cheques; 2009 ImageNet gives vision a measuring stick."
+  - year: "2012"
+    event: "AlexNet cuts ImageNet error nearly in half and starts the deep era."
+  - year: "2020"
+    event: "ViT, CLIP, NeRF and Stable Diffusion rebuild the field around attention and generative priors."
+  - year: "today"
+    event: "Vision-language models reason over images; evaluation and provenance are the open problems."

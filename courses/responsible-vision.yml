@@ -1,0 +1,18 @@
+id: responsible-vision
+category:
+  id: frontier
+order_index: 12
+translations:
+  en:
+    title: "Robustness, Ethics & Open Problems"
+    description: "Adversarial examples, distribution shift, privacy, fairness and the unsolved questions worth building a research career on."
+    faqs:
+      - question: "Are adversarial examples a real threat or a curiosity?"
+        answer: "Both. In security-critical perception they are a real attack surface; in research they are a probe that reveals how models generalise. Threat models decide which claim applies."
+      - question: "Can a vision model be fair?"
+        answer: "Fairness is a property of a system in context, not of weights alone. It depends on data collection, task definition, thresholds, deployment and who bears the cost of errors."
+      - question: "What should a newcomer work on?"
+        answer: "Pick a measurement problem, not a leaderboard. Reliable evaluation, data provenance, 3D and video understanding, and efficiency under real constraints are all under-served relative to their importance."
+    meta_title: "Robustness, Ethics and Open Problems in Vision - Vision Journey"
+    meta_description: "Study adversarial robustness, distribution shift, privacy, fairness, model documentation and the open research problems in computer vision."
+    meta_keywords: "adversarial examples, PGD, robustness, distribution shift, fairness, privacy, model cards, open problems"

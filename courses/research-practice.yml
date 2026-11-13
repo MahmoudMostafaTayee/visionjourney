@@ -1,0 +1,18 @@
+id: research-practice
+category:
+  id: frontier
+order_index: 10
+translations:
+  en:
+    title: "Research Practice"
+    description: "How to read a paper in three passes, reproduce a result, design an ablation and report a number that another lab can trust."
+    faqs:
+      - question: "Is this course only for people doing a PhD?"
+        answer: "No. The same skills decide whether an industry model evaluation is meaningful. Reading claims sceptically, controlling variables and reporting uncertainty are engineering skills."
+      - question: "What counts as a reproduction?"
+        answer: "A result is reproduced when an independent implementation, with documented data and compute, reaches the reported metric within a stated tolerance. Partial reproductions should say which parts were verified."
+      - question: "Which venues should I follow?"
+        answer: "CVPR, ICCV and ECCV for vision; NeurIPS, ICML and ICLR for learning; SIGGRAPH for graphics and 3D; plus arXiv for preprints. Read the reviews and the reproducibility checklist, not only the abstract."
+    meta_title: "Computer Vision Research Practice - Vision Journey"
+    meta_description: "Learn the three-pass paper reading method, reproducible experiment design, ablations, statistical reporting and benchmark critique for vision research."
+    meta_keywords: "how to read a paper, reproducibility, ablation study, benchmark, CVPR, error bars, research methodology"

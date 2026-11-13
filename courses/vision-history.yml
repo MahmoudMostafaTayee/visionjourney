@@ -1,0 +1,18 @@
+id: vision-history
+category:
+  id: foundations
+order_index: 0
+translations:
+  en:
+    title: "Vision History"
+    description: "From the camera obscura and the first edge detectors to the deep-learning earthquake: how the field framed its questions, and which of them are still open."
+    faqs:
+      - question: "Why start a technical curriculum with history?"
+        answer: "Because the field's assumptions were set before the tools existed. Marr's inverse-optics framing, the feature-era pipeline, and the 2012 shift to learned representations explain why modern architectures look the way they do."
+      - question: "Do I need the history before the mathematics?"
+        answer: "No, but the lessons give you the vocabulary and the timeline that the rest of the curriculum refers back to. Read them first if you are new; skip to the checks if you already know the canon."
+      - question: "Which papers are treated as primary sources here?"
+        answer: "Roberts (1963), Marr and Hildreth (1980), Lowe (1999, 2004), Viola and Jones (2001), Dalal and Triggs (2005), Krizhevsky et al. (2012), He et al. (2016) and Dosovitskiy et al. (2021)."
+    meta_title: "History of Computer Vision - Vision Journey"
+    meta_description: "Trace computer vision from the camera obscura and Roberts' edge detector through Marr, SIFT and ImageNet to AlexNet and vision transformers."
+    meta_keywords: "computer vision history, camera obscura, Marr, SIFT, ImageNet, AlexNet, deep learning revolution"

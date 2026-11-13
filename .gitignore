@@ -1,0 +1,15 @@
+# Generated site output — rebuild with `python3 tools/build.py`
+site/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,54 @@
+{
+  "models": [
+    {
+      "id": "demo-cnn",
+      "name": "Demo CNN (LeNet shape)",
+      "task": "10-class classification \u00b7 1\u00d728\u00d728",
+      "params": "52.1K",
+      "size": "206 KB",
+      "file": "demo-cnn.onnx",
+      "note": "Two convolutions, two pools, two linear layers \u2014 the smallest complete vision graph.",
+      "nodes": 10
+    },
+    {
+      "id": "resnet-mini",
+      "name": "ResNet-Mini",
+      "task": "Residual classification \u00b7 3\u00d764\u00d764",
+      "params": "38.0K",
+      "size": "163 KB",
+      "file": "resnet-mini.onnx",
+      "note": "Identity shortcuts make the graph a DAG, not a chain: follow the Add nodes.",
+      "nodes": 129
+    },
+    {
+      "id": "vit-tiny",
+      "name": "Tiny ViT",
+      "task": "Patch-transformer classification \u00b7 3\u00d732\u00d732",
+      "params": "21.2K",
+      "size": "102 KB",
+      "file": "vit-tiny.onnx",
+      "note": "Attention is just MatMul \u2192 Softmax \u2192 MatMul: find the 4\u00d765\u00d765 score tensors.",
+      "nodes": 232
+    },
+    {
+      "id": "unet-mini",
+      "name": "U-Net Mini",
+      "task": "Semantic segmentation \u00b7 3\u00d764\u00d764",
+      "params": "117.4K",
+      "size": "467 KB",
+      "file": "unet-mini.onnx",
+      "note": "Skip concatenations carry high-resolution detail across the bottleneck.",
+      "nodes": 71
+    },
+    {
+      "id": "mobilenet-block",
+      "name": "Mobile Inverted Residual",
+      "task": "Efficient classification \u00b7 3\u00d764\u00d764",
+      "params": "19.0K",
+      "size": "84 KB",
+      "file": "mobilenet-block.onnx",
+      "note": "Depthwise convolution (groups = channels) trades FLOPs for memory traffic.",
+      "nodes": 45
+    }
+  ]
+}
