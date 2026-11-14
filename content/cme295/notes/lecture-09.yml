@@ -1,0 +1,438 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 9: the quarter in review, then the frontier, where the same
+    architecture is applied to images, speech and code.
+  said: >-
+    Hello, everyone, and welcome to lecture 9 of CME 295.
+
+7:
+  gist: >-
+    The review starts where lecture 1 did: one sentence, tokenized.
+  said: >-
+    We're going to try to divide the lecture in three parts.
+
+9:
+  gist: >-
+    Then embedded, projected into queries, keys and values, and passed
+    through the 2017 block.
+
+10:
+  gist: >-
+    Lecture 2 added the parts around that block.
+
+11:
+  gist: >-
+    Rotary position embeddings, now the default way to tell the model where
+    it is.
+  said: >-
+    tokens, the next step for us was to learn how to represent these
+    embeddings.
+
+12:
+  gist: >-
+    Grouped-query attention, which shrinks the KV cache without much loss.
+  said: >-
+    But then we also saw that there was a number of other kinds of models,
+    all more or less derived from the transformer.
+
+13:
+  gist: >-
+    And the encoder, decoder and cross-attention pieces in their places.
+
+14:
+  gist: >-
+    Lecture 3 introduced the LLM as a decoder-only transformer.
+
+15:
+  gist: >-
+    With mixture of experts replacing the feed-forward block.
+
+16:
+  gist: >-
+    Routed per token, as Mixtral does.
+
+17:
+  gist: >-
+    So the same block, four times wider and gated.
+
+18:
+  gist: >-
+    Lecture 4 covered how that model is trained.
+
+19:
+  gist: >-
+    Starting from the scaling laws: loss falls predictably with scale.
+
+20:
+  gist: >-
+    And the Chinchilla correction: parameters and tokens should grow
+    together.
+
+21:
+  gist: >-
+    Training at that scale is a memory problem, and Flash Attention is the
+    answer: move less data between HBM and SRAM.
+  said: >-
+    The data set that they were trained on was not as big as they should
+    have been.
+
+25:
+  gist: >-
+    Which completes the training picture, from pretraining to the three-
+    stage lifecycle.
+
+26:
+  gist: >-
+    Lecture 5 added the third stage, tuning on preferences.
+
+28:
+  gist: >-
+    The RL framing: the model is the policy, the text so far the state, the
+    next token the action.
+
+29:
+  gist: >-
+    A reward model scores answers and the policy is updated by reinforcement
+    learning.
+
+30:
+  gist: >-
+    PPO's objective keeps the new policy close to the old one while chasing
+    reward.
+  said: >-
+    You don't want it to deviate too much from the base model, but you don't
+    want it to deviate too much from the previous RL iteration.
+
+32:
+  gist: >-
+    Lecture 6 made the model think before answering.
+
+33:
+  gist: >-
+    DeepSeek R1 showed that the behaviour can be trained with RL against
+    verifiable rewards alone.
+
+34:
+  gist: >-
+    And GRPO made that affordable by replacing the value model with a group
+    baseline.
+  said: >-
+    The key technique that we use to teach the model how to output these
+    reasoning chains is leveraging the RL techniques that we saw in lecture
+    5.
+
+35:
+  gist: >-
+    Lecture 7 gave the model reach: retrieval, tools and agents.
+
+36:
+  gist: >-
+    RAG puts only the relevant chunks in the prompt.
+
+38:
+  gist: >-
+    Tool calling lets the model act, and ReAct wraps it in a reason-act-
+    observe loop.
+  said: >-
+    We knew how to use it for reasoning tasks, how to train it to be better.
+
+39:
+  gist: >-
+    Lecture 8 asked how any of this is measured.
+
+40:
+  gist: >-
+    LLM-as-a-judge scores responses against written criteria.
+
+41:
+  gist: >-
+    And benchmarks cover knowledge, reasoning, coding and safety.
+  said: >-
+    The model response along with the criteria that you want the response to
+    be evaluated on.
+
+44:
+  gist: >-
+    The second half of the lecture asks whether this architecture is only
+    for text.
+  said: >-
+    People said, OK, it performs great on machine translation, why not try
+    it on other text tasks.
+
+45:
+  gist: >-
+    Attention is a lookup: query, key, value, learned by projection.
+
+47:
+  gist: >-
+    In text, every token attends to every other token.
+
+48:
+  gist: >-
+    An image can be treated the same way if it is first cut into pieces.
+
+49:
+  gist: >-
+    So how do you turn an image into a sequence?
+
+50:
+  gist: >-
+    Cut it into patches, embed each patch like a token, and add position; a
+    classifier reads the result.
+  said: >-
+    It computes meaningful embeddings that can then be used for projection
+    purposes or for classification purposes.
+
+51:
+  gist: >-
+    That is the Vision Transformer, from the paper whose title says an image
+    is worth 16x16 words.
+  said: >-
+    You look at your image a little bit like you would look at it in
+    practice as a human.
+
+53:
+  gist: >-
+    The end-to-end example starts by projecting each patch into the
+    embedding dimension.
+
+58:
+  gist: >-
+    Position encodings are added, and a [CLS] token is prepended to hold the
+    summary.
+
+61:
+  gist: >-
+    The encoder then processes the sequence exactly as it would process
+    text.
+
+62:
+  gist: >-
+    And the [CLS] output is classified: here, a teddy bear.
+
+63:
+  gist: >-
+    A vision-language model goes further: an image and a question produce an
+    answer.
+
+64:
+  gist: >-
+    Method one recycles a decoder-only LLM and teaches it to read image
+    tokens.
+
+65:
+  gist: >-
+    LLaVA's visual instruction tuning is the canonical example.
+
+67:
+  gist: >-
+    Method two keeps the text model untouched and feeds images through
+    cross-attention, as Flamingo and Llama's multimodal variants do.
+  said: >-
+    The second method, which is less common, is to have the images be inputs
+    at the cross-attention layer.
+
+68:
+  gist: >-
+    The image becomes keys and values that the text decoder attends to.
+  said: >-
+    You actually let it interact with the text tokens within the cross-
+    attention layer.
+
+69:
+  gist: >-
+    So transformers now cover text generation, vision understanding, image
+    generation, recommendation and speech.
+  said: >-
+    This is also something that has been used in other domains like
+    recommendation speech and so on.
+
+81:
+  gist: >-
+    The autoregressive paradigm has one weakness: generation is sequential,
+    so it cannot be parallelised at inference.
+  said: >-
+    But I just want to say that inference time generation is not
+    parallelizable, but training is parallelizable.
+
+82:
+  gist: >-
+    Diffusion language models are the alternative being announced by Google,
+    Inception and ByteDance.
+
+86:
+  gist: >-
+    The intuition comes from sculpture: the answer already exists in the
+    noise, and the model learns to chisel it out.
+  said: >-
+    The reason why I'm reading that is you can have a nice analogy between
+    what Michelangelo said and the process of de-noising the noise to get an
+    image.
+
+87:
+  gist: >-
+    Formally, learn a transformation from noise to the data distribution.
+  said: >-
+    You just want to learn what pieces of rock you need to remove in order
+    to obtain your final piece of art.
+
+89:
+  gist: >-
+    For images: add noise in a forward process, learn to reverse it.
+
+90:
+  gist: >-
+    For text, the equivalent of noise is a mask.
+
+92:
+  gist: >-
+    Corrupt the sentence by masking tokens, then learn to unmask them, and
+    generate by starting from all masks.
+  said: >-
+    Because in the text world, as you know, we're talking about tokens.
+
+96:
+  gist: >-
+    A masked diffusion model decodes many tokens per forward pass instead of
+    one.
+  said: >-
+    There's a paper that came out earlier this year called LLaDA, large
+    language diffusion model with masking.
+
+98:
+  gist: >-
+    The trade: around ten times the output tokens per second, at some cost
+    in quality, which is the active research problem.
+  said: >-
+    There are so many techniques that are intrinsically more better suited
+    for autoregressive kinds of models that can be adapted for that.
+
+101:
+  gist: >-
+    The closing theme is cross-pollination: modalities borrow what works.
+
+102:
+  gist: >-
+    Diffusion training for text, transformers for images.
+
+103:
+  gist: >-
+    Input representations cross over too: DeepSeek-OCR compresses text as
+    images.
+  said: >-
+    But not only is it the architecture side that is the subject of
+    pollination between these modalities, you could even think of other
+    kinds of components like the input.
+
+104:
+  gist: >-
+    Even position encodings get multimodal variants.
+  said: >-
+    But actually, that paper doesn't boast some improvements on the OCR task
+    itself.
+
+106:
+  gist: >-
+    Basic research is still open: optimisers, normalisation, attention
+    layouts and depth differ paper to paper.
+  said: >-
+    One is each of these design decisions that we've had, they are still
+    being iterated on.
+
+107:
+  gist: >-
+    And the fuel is a question: where does future high-quality data come
+    from, given that training on generated data degrades models?
+  said: >-
+    Size of the number of units in the FFN, all of that is still up for
+    debate in terms of design decisions.
+
+108:
+  gist: >-
+    Which raises the largest question of all: is the transformer the final
+    architecture?
+
+109:
+  gist: >-
+    The field's focus has been best performance at any cost.
+
+110:
+  gist: >-
+    It is shifting to the best quality per unit of cost.
+
+113:
+  gist: >-
+    Hardware is part of that: GPUs are built for matrix maths, while
+    attention is dominated by memory movement.
+
+114:
+  gist: >-
+    The proposal is to put attention in memory itself, with dedicated cells
+    and analog computation.
+  said: >-
+    I think it has been dubbed small language models, SLM, in the
+    literature.
+
+115:
+  gist: >-
+    The reported numbers are dramatic: about 100x lower latency and 70,000x
+    lower energy than an H100, in simulation.
+  said: >-
+    You just get them as a side effect of your hardware.
+
+116:
+  gist: >-
+    Meanwhile the everyday uses are already here: coding, assistants,
+    creativity and learning.
+  said: >-
+    It browses the web more efficiently than you and converts into natural
+    language the things that you care about.
+
+117:
+  gist: >-
+    Tomorrow's are agents distributed through the tools people already use,
+    as Google Workspace did.
+
+118:
+  gist: >-
+    Then a browser, perhaps an operating system, and eventually agents with
+    real responsibility.
+
+120:
+  gist: >-
+    The long-term list is speculative, and the slide says so: autonomous
+    agents, maybe even useful customer service.
+  said: >-
+    At the OS level, might be something that the LLM can help.
+
+121:
+  gist: >-
+    The open problems: weights that never learn after training,
+    hallucination, personalisation, interpretability and safety.
+
+124:
+  gist: >-
+    Where to follow the field: arXiv, the conferences, authors'
+    repositories, Hugging Face trending, and the usual blogs and channels.
+  said: >-
+    Of course, the venues like NeurIPS right now are great to highlight some
+    papers.
+
+126:
+  gist: >-
+    The cheatsheet, translated into eleven languages, is the revision aid.
+
+127:
+  gist: >-
+    The book is at superstudy.guide.
+  said: >-
+    Also, thank you to the folks who are watching online from home.
+
+128:
+  gist: >-
+    And the course ends with a thank you and an open door.
+  said: >-
+    Thanking you all for your attention and wishing you all the best.

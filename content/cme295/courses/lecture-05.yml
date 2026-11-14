@@ -1,0 +1,13 @@
+id: lecture-05
+category:
+  id: training
+order_index: 4
+translations:
+  en:
+    title: Lecture 5 · Preference Tuning
+    description: 'The step after supervised fine-tuning: teaching a model what people prefer, from reward
+      models and RLHF to direct preference optimisation.'
+    meta_title: Lecture 5 · Preference Tuning — CME 295
+    meta_description: 'The step after supervised fine-tuning: teaching a model what people prefer, from
+      reward models and RLHF to direct preference optimisation.'
+    meta_keywords: preference tuning, RLHF, reward models, DPO, preference data

@@ -1,0 +1,342 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 6: reasoning models, where the model is trained to think before
+    answering.
+
+2:
+  gist: >-
+    The lifecycle from lecture 5, now complete: pretrained, finetuned and
+    preference-tuned.
+
+4:
+  gist: >-
+    Recap of the RL framing: the model is the policy, the text so far is the
+    state, the next token is the action.
+  said: >-
+    is that given a state that it is in, it can take an action following a
+    policy, which is nothing else than just a probability distribution over
+    actions.
+
+7:
+  gist: >-
+    Recap of PPO's two constraints: maximise advantage, stay close to the
+    reference policy.
+  said: >-
+    But in modern day RLHF training, this KL divergence is typically applied
+    to the base model, which is the SFT model.
+
+11:
+  gist: >-
+    What a plain LLM is good at (imitating, generating, debugging code) and
+    what it cannot do: reason carefully, learn anything new, or act on the
+    world.
+
+15:
+  gist: >-
+    This lecture's map: scaling with RL, GRPO, and the applications that
+    followed.
+
+17:
+  gist: >-
+    A working definition: reasoning is solving a problem rather than
+    recalling a fact. Asking for a course code is not reasoning; working out
+    a bear's age is.
+  said: >-
+    Well, to answer this question, we first need to, I guess, define what
+    reasoning is.
+
+21:
+  gist: >-
+    The core idea is chain of thought, pushed much further: let the model
+    write a long derivation before it commits to an answer.
+  said: >-
+    But we'll respond to this part, I guess, next lecture.
+
+24:
+  gist: >-
+    So the interface changes: a question no longer maps straight to an
+    answer, it maps to a reasoning chain and then an answer.
+
+25:
+  gist: >-
+    The timeline of public reasoning models, from OpenAI's o1 preview in
+    September 2024 to DeepSeek R1, Gemini's thinking mode and Claude 3.7.
+
+28:
+  gist: >-
+    You can spot one by what the interface shows: thinking happens, but only
+    a summary of it is revealed.
+  said: >-
+    I was having a discussion with ChatGPT the other day.
+
+30:
+  gist: >-
+    The providers expose it differently, though all now sell a thinking mode
+    next to a fast mode.
+
+33:
+  gist: >-
+    These models are graded on tasks with checkable answers: write a program
+    and run the tests.
+  said: >-
+    We saw, I guess, the core idea behind reasoning models.
+
+34:
+  gist: >-
+    For code, the benchmarks are HumanEval, CodeForces and SWE-bench.
+  said: >-
+    But you have then CodeForces, which is coming from a website of
+    competitive programming that some of you may know.
+
+37:
+  gist: >-
+    The same shape for maths: solve an olympiad problem, and verify the
+    final number against the ground truth.
+  said: >-
+    Now for math, the goal is to solve a problem.
+
+38:
+  gist: >-
+    For maths, AIME and GSM8K.
+  said: >-
+    It's a math exam to qualify for the US math olympiads.
+
+44:
+  gist: >-
+    Because verification is cheap, the metric can allow several attempts:
+    pass@k is the chance that at least one of k tries succeeds.
+  said: >-
+    But you may tell me, just generate k attempts and just count the number
+    of the attempts that are correct to estimate that.
+
+45:
+  gist: >-
+    Estimating pass@k from n sampled attempts is a combinatorial estimate,
+    since testing k attempts directly would be wasteful.
+
+46:
+  gist: >-
+    Pass@k suits settings where checking is cheap and latency is not
+    critical; pass@1 suits everything else.
+
+47:
+  gist: >-
+    A third metric, cons@k, takes a majority vote over k answers and checks
+    that against the truth.
+
+48:
+  gist: >-
+    That closes the benchmark section and opens the training question.
+
+53:
+  gist: >-
+    Why RL rather than imitation: reasoning chains are impractical to write
+    by hand, human chains would cap the model, and correctness supplies a
+    natural reward.
+  said: >-
+    But the problem with SFT is you need high quality data, and in
+    particular, you would need to write all of these reasoning chains.
+
+56:
+  gist: >-
+    Reward one is structural: the response must contain a think block and
+    then an answer.
+
+58:
+  gist: >-
+    Reward two is correctness: run the tests, or compare the number.
+  said: >-
+    For math, you would just verify with respect to the answer being the
+    same as the ground truth.
+
+62:
+  gist: >-
+    Training on those two rewards is enough to produce reasoning behaviour
+    without any supervised reasoning data.
+  said: >-
+    But you can see that if you incentivize the model to think and produce
+    the right answer, it can actually learn quite meaningfully, only with
+    these two verifiable rewards.
+
+65:
+  gist: >-
+    At inference, not every prompt deserves the same amount of thought, so
+    the budget should depend on the question.
+  said: >-
+    Also be aware of how much context length is left.
+
+66:
+  gist: >-
+    Budget forcing pushes the model to think longer, or cuts it off, by
+    editing the thinking marker.
+
+67:
+  gist: >-
+    A more radical option is to reason in a continuous latent space rather
+    than in words.
+  said: >-
+    Or another term can be, OK, your time is up.
+
+68:
+  gist: >-
+    Which brings the lecture to the algorithm that makes this affordable.
+
+72:
+  gist: >-
+    GRPO replaces PPO's learned value baseline with the average reward of a
+    group of sampled answers to the same prompt.
+  said: >-
+    Whereas for PPO, we use the rewards and the value models.
+
+92:
+  gist: >-
+    GRPO keeps PPO's ratio and clipping, so updates stay in a trust region.
+
+94:
+  gist: >-
+    But it drops the value model and the KL penalty, estimating the
+    advantage from the group instead.
+
+97:
+  gist: >-
+    A side effect of RL on reasoning: responses get longer and longer as
+    training proceeds.
+  said: >-
+    I just swapped the 1 over length of output number I.
+
+101:
+  gist: >-
+    The mechanism: length grows because longer answers were, on average,
+    rewarded.
+  said: >-
+    If it's a short output, it's going to be 1 over a short number.
+
+105:
+  gist: >-
+    That is a bug in the objective, not a feature: the model learns to pad
+    its reasoning because of how rewards are normalised.
+  said: >-
+    This is a bad incentive because what you're telling your model is if you
+    have a short bad sentence, it is worse than if you have a long bad
+    sentence.
+
+108:
+  gist: >-
+    DAPO's remedy normalises the advantage per token rather than per
+    sequence, so length stops paying.
+
+111:
+  gist: >-
+    Dr. GRPO identifies the same bias and removes the length and std
+    normalisation terms from the objective.
+  said: >-
+    But for incorrect solutions, here, the corrected policy is having an
+    average length that's much lower than the ones from GRPO.
+
+112:
+  gist: >-
+    Other adjustments target difficulty: questions that are always right or
+    always wrong teach nothing.
+
+114:
+  gist: >-
+    DAPO also adds a diversity reward so the group of samples does not
+    collapse to one answer.
+
+115:
+  gist: >-
+    And a long list of smaller tricks from the open RL literature.
+
+116:
+  gist: >-
+    The lecture ends by assembling the pieces into DeepSeek R1.
+
+119:
+  gist: >-
+    Two routes to a reasoning model: R1-Zero trains the base model with RL
+    alone; R1 adds supervised stages around it.
+  said: >-
+    Now it's going to be a bit easier because we're going to see how all of
+    this comes together.
+
+122:
+  gist: >-
+    Step 1 is the ordinary pretrained model: DeepSeek V3-Base, a mixture of
+    experts with 671B parameters of which 37B are active.
+
+124:
+  gist: >-
+    Step 2 runs GRPO on verifiable reasoning questions, with a template that
+    forces the think-then-answer structure.
+  said: >-
+    You have the first sentences that set up the stage that say, hey, you're
+    discussing with the user, you're an assistant.
+
+126:
+  gist: >-
+    R1-Zero works, which is the interesting result: reasoning emerges from
+    reward alone, but its chains are unreadable and badly formatted.
+  said: >-
+    Well, not so easy, because the authors, when they looked at the
+    reasoning chains, they saw some issues with it of two kinds.
+
+128:
+  gist: >-
+    R1 starts from the same base model.
+
+130:
+  gist: >-
+    Step 2 is a small supervised finetune on long chains produced by R1-Zero
+    and rewritten by humans for readability.
+
+132:
+  gist: >-
+    Step 3 repeats GRPO, now with a language-consistency reward alongside
+    format and accuracy.
+  said: >-
+    There was something called a language consistency reward where they use
+    a very simple heuristic to assess whether the model indeed doesn't mix
+    languages.
+
+135:
+  gist: >-
+    Step 4 is a large supervised stage mixing reasoning data with general
+    data, about 600k reasoning pairs and 200k general ones.
+
+138:
+  gist: >-
+    Step 5 runs a final GRPO pass over both kinds of data, with helpfulness
+    and harmlessness rewards for the general half.
+  said: >-
+    But on the non-reasoning one, you try to align the model on
+    characteristics that make an LLM a helpful assistant and a harmless one.
+
+141:
+  gist: >-
+    The result is a model competitive with the closed reasoning models of
+    its time.
+
+144:
+  gist: >-
+    Distillation here means something different from lecture 2: instead of
+    matching a teacher's distribution, the student is trained on the
+    teacher's reasoning traces.
+  said: >-
+    Let's say you have a smaller model, but you want to have the
+    capabilities of these large reasoning model.
+
+147:
+  gist: >-
+    The distilled models are competitive and a far better use of a fixed
+    compute budget than training small models with RL from scratch.
+  said: >-
+    Well, actually, the authors have seen that at a smaller size level,
+    distilling the knowledge is more efficient in terms of performance than
+    directly learning from scratch.
+
+148:
+  gist: >-
+    Closing slide of lecture 6.

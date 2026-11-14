@@ -1,0 +1,519 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 4: how a model is actually trained, from pretraining at scale to
+    parameter-efficient finetuning.
+  said: >-
+    Hello, everyone, and welcome to lecture 4 of CME 295.
+
+3:
+  gist: >-
+    Logistics: the midterm covers lectures 1 to 4, the final covers lectures
+    5 to 9.
+  said: >-
+    In terms of topics, the midterm will be about lectures 1, 2, and 3,
+    which we had, and this one, which is lecture 4.
+
+6:
+  gist: >-
+    Recap of mixture of experts: a feed-forward block replaced by several,
+    with a router choosing per token.
+
+7:
+  gist: >-
+    Recap of the inference tricks from lecture 3: KV cache, PagedAttention,
+    speculative decoding, GQA, latent attention, multi-token prediction.
+  said: >-
+    First one was we called greedy decoding, which was always taking the
+    highest probable token.
+
+8:
+  gist: >-
+    The lecture's map: pretraining, training optimisations, supervised
+    finetuning, parameter-efficient finetuning.
+
+10:
+  gist: >-
+    The old paradigm trained one model per task, from scratch, for every
+    task you needed.
+  said: >-
+    If you had another use case, let's suppose sentiment extraction, you
+    would train a model specifically for that and so on and so forth.
+
+13:
+  gist: >-
+    The new paradigm trains one model to understand language and then tunes
+    it for each end task.
+  said: >-
+    We would somehow tune it for that sentiment extraction, same.
+
+14:
+  gist: >-
+    Pretraining means learning the patterns of language and code: prose,
+    Python and Go, and many natural languages at once.
+
+15:
+  gist: >-
+    Its objective is the same next-token prediction as lecture 3, applied to
+    everything on the internet.
+
+16:
+  gist: >-
+    The data mixture is web text, books, code and reference material,
+    deduplicated and filtered.
+  said: >-
+    It can be even code, can be code in different languages, can be
+    basically the whole internet.
+
+17:
+  gist: >-
+    The scale: GPT-3 saw 300 billion tokens, LLaMA 3 saw roughly 15
+    trillion.
+  said: >-
+    We're going to see some of the data sets that people use for that, but
+    you can think of this as just training your model to try to predict
+    anything that's written.
+
+18:
+  gist: >-
+    Notation for the rest of the lecture: FLOPs are operations, FLOPS are
+    operations per second.
+
+19:
+  gist: >-
+    Same notation slide, with the distinction that matters when estimating
+    cost.
+  said: >-
+    Because by definition, FLOPs is the number of operations that involve
+    floating point numbers.
+
+21:
+  gist: >-
+    Takeaways from the scaling laws: loss falls predictably with parameters,
+    data and compute.
+
+23:
+  gist: >-
+    The Chinchilla correction: for a fixed compute budget, parameters and
+    tokens should grow together, so models were undertrained on data.
+  said: >-
+    But then you can wonder, we don't have unlimited compute.
+
+27:
+  gist: >-
+    Pretraining's costs: millions of dollars, weeks of time, electricity, a
+    knowledge cutoff, knowledge that is hard to edit, and the plagiarism
+    question.
+  said: >-
+    I think it can even cost tens of millions of dollars or sometimes
+    hundreds of millions of dollars.
+
+28:
+  gist: >-
+    The lecture turns to how that training is actually run.
+
+31:
+  gist: >-
+    Training happens on many GPUs, and the whole section is about the
+    constraints that creates.
+  said: >-
+    You need a lot of data, but then if you look at your architecture, you
+    see that a lot of the operations involve matrix multiplications.
+
+32:
+  gist: >-
+    Training state: the parameters themselves, hundreds of millions to
+    hundreds of billions of numbers.
+
+33:
+  gist: >-
+    The forward pass also stores activations, whose size depends on model
+    size, batch size and context length.
+  said: >-
+    It's dependent on the model size, which impacts the number of
+    activations.
+
+34:
+  gist: >-
+    The backward pass produces gradients, one per parameter, which is
+    another copy of the model in memory.
+  said: >-
+    Well, gradients, they also need to be saved somewhere in memory.
+
+35:
+  gist: >-
+    The optimiser keeps its own state per parameter, and Adam keeps two
+    numbers per weight.
+
+36:
+  gist: >-
+    Which brings the real bottleneck into view: a single GPU holds tens of
+    gigabytes, and the model does not fit.
+
+37:
+  gist: >-
+    Limited memory is the constraint everything else in this lecture is a
+    response to.
+
+39:
+  gist: >-
+    Data parallelism: replicate the model on every GPU and give each one a
+    slice of the batch, then average the gradients.
+  said: >-
+    Of course, you need to fit a model on a device, and we will see how we
+    to do that.
+
+42:
+  gist: >-
+    ZeRO removes the redundancy: ZeRO-2 also shards gradients as well as the
+    optimiser state across devices.
+
+43:
+  gist: >-
+    ZeRO-3 goes further and shards the parameters themselves, gathering each
+    layer only when it is needed.
+  said: >-
+    We can also partition the gradients, and we can also partition the
+    parameters.
+
+44:
+  gist: >-
+    Model parallelism splits the model rather than the data: by tensor, by
+    pipeline stage, by sequence, by context, or by expert.
+  said: >-
+    Well, there is a way to distribute that across GPUs via this expert
+    parallelism techniques, which is having, let's say, one expert on a
+    device, another one on another device.
+
+47:
+  gist: >-
+    Flash Attention starts from the hardware: SRAM is small and fast, HBM is
+    large and slow, and attention moves data between them constantly.
+  said: >-
+    But what I know is that we have two kinds of memories in GPU.
+
+49:
+  gist: >-
+    The standard computation materialises the full attention matrix in HBM,
+    step by step.
+
+50:
+  gist: >-
+    It loads blocks of queries and keys from HBM, computes scores, writes
+    them back, reads them again.
+  said: >-
+    What we're doing is we're just leveraging the strength of these
+    components and sending the computation in a clever way.
+
+51:
+  gist: >-
+    Each intermediate is written out and read back, and that traffic, not
+    the arithmetic, sets the speed.
+
+52:
+  gist: >-
+    The score matrix S is the largest of these and is written to HBM in
+    full.
+
+53:
+  gist: >-
+    Then it is read back to be normalised.
+
+54:
+  gist: >-
+    Softmax produces the probabilities P, another full matrix in HBM.
+
+55:
+  gist: >-
+    Which is written out again.
+  said: >-
+    See, there's a lot read and write to the HBM.
+
+56:
+  gist: >-
+    Then P and V are loaded back, block by block, to compute the output.
+
+57:
+  gist: >-
+    The output is accumulated, requiring yet more reads and writes.
+
+58:
+  gist: >-
+    The result is exact but memory-bound: the arithmetic is cheap relative
+    to the movement.
+
+61:
+  gist: >-
+    Flash Attention's first idea is tiling: keep blocks of Q, K and V in
+    SRAM and never materialise the full matrix.
+  said: >-
+    It takes small blocks that it sends to the SRAM, so that it gets
+    computed from end to end before being sent back to the HBM.
+
+62:
+  gist: >-
+    The second trick makes that possible: the softmax can be computed
+    incrementally, rescaling partial results as blocks arrive.
+
+68:
+  gist: >-
+    So each block is loaded once, the block of the output is computed in
+    SRAM, and only the result goes to HBM.
+
+70:
+  gist: >-
+    For the backward pass it recomputes the attention matrices instead of
+    storing them: more arithmetic, less memory traffic, and less total time.
+  said: >-
+    Well, this was flash attention, but there's actually another idea from
+    the paper.
+
+71:
+  gist: >-
+    The result is a large speedup with exactly the same maths, which is why
+    it is now the default attention kernel.
+  said: >-
+    But yeah, I would say flash attention is quite a common trick, and I
+    think it's a very good thing to.
+
+72:
+  gist: >-
+    Numbers in a neural network are not exact: they are stored with a fixed
+    number of bits.
+
+73:
+  gist: >-
+    Lower precision keeps fewer digits, which is why the same values look
+    truncated.
+
+75:
+  gist: >-
+    The formats: FP32 is the default (1 sign, 8 exponent, 23 mantissa bits),
+    FP16 halves it, BF16 keeps FP32's exponent with fewer mantissa bits.
+  said: >-
+    In order to better understand that, I think it's important to know how
+    floating points-- sorry, floating point numbers, how they are encoded.
+
+77:
+  gist: >-
+    Lower precision runs faster on tensor cores, which is why training uses
+    it wherever it is safe.
+
+78:
+  gist: >-
+    Mixed precision training uses low precision for the bulk of the work and
+    high precision where it matters.
+
+81:
+  gist: >-
+    Activations and gradients are computed in low precision, while the
+    weights themselves stay in high precision so small updates are not
+    rounded away.
+  said: >-
+    But then the weight updates will be done still in FP32.
+
+82:
+  gist: >-
+    That closes the training section, and the lecture moves to what happens
+    after pretraining.
+  said: >-
+    We're going to see together the next stages of training.
+
+83:
+  gist: >-
+    The story so far: an initialised model plus pretraining gives a model
+    with general knowledge of language and code.
+
+85:
+  gist: >-
+    But that model answers the wrong question: asked whether a teddy bear
+    can go in the washer, it continues the text instead of answering.
+
+86:
+  gist: >-
+    The remedy is finetuning: further training that changes behaviour rather
+    than adding knowledge.
+
+88:
+  gist: >-
+    Supervised finetuning trains on input-output pairs that show the
+    behaviour you want, using the same next-token objective.
+  said: >-
+    For instruction tuning, we're going to look at data that's presents to
+    the model how it can most helpfully respond to instructions.
+
+89:
+  gist: >-
+    Instruction tuning is the special case where those pairs are
+    instructions and good answers.
+
+90:
+  gist: >-
+    The examples show the shift: stories, lists, poems and explanations,
+    answered rather than continued.
+  said: >-
+    Other examples include a poem creation, list generation, explanation,
+    and many more that are part of the data mixture of SFT.
+
+91:
+  gist: >-
+    The objective is unchanged, predict the next token, but the data now
+    looks like a conversation.
+
+92:
+  gist: >-
+    Instruction data mixes human-written dialogs with synthetic instructions
+    covering maths, reasoning, code and safety.
+
+93:
+  gist: >-
+    The amounts differ by era: GPT-3's instruction tuning used about 13,000
+    examples, LLaMA 3 about 10 million.
+
+95:
+  gist: >-
+    With instruction tuning the same model now answers the washing machine
+    question instead of continuing it.
+  said: >-
+    You can put in the teddy bear in the washer, except that you shouldn't
+    put your teddy bear in the washer.
+
+96:
+  gist: >-
+    The costs: data quality dominates, behaviour is sensitive to prompt
+    distribution, generalisation is uneven, evaluation is hard and compute
+    is high.
+  said: >-
+    When we have these data sets, these data mixtures for SFT training, we
+    need high quality data.
+
+98:
+  gist: >-
+    Benchmarks are how the field compares models: MMLU for knowledge, ARC
+    for reasoning, GSM8K for maths, HumanEval for code.
+  said: >-
+    You have benchmarks on reasoning, on math reasoning, as well as code
+    generation.
+
+99:
+  gist: >-
+    Chatbot Arena takes the other approach: blind A/B tests on real user
+    prompts, ranked by votes.
+
+101:
+  gist: >-
+    Its benefits and problems: it puts a number on vibes, but exposure is
+    unequal, it can be gamed, users cannot judge factuality, voters are not
+    representative, and safety gets penalised.
+
+102:
+  gist: >-
+    The conclusion of the slide is the honest one: evaluation is a hard
+    problem in itself.
+  said: >-
+    It's just that it's very hard to give a number that conveys the value to
+    you of the model.
+
+103:
+  gist: >-
+    Next lecture adds the third stage, preference tuning, where the model
+    learns what people prefer rather than merely what to imitate.
+
+104:
+  gist: >-
+    The lifecycle in full: initialise, pretrain, finetune, preference-tune,
+    and the last two together are what the field calls alignment.
+
+105:
+  gist: >-
+    The last part of the lecture is about doing finetuning on hardware you
+    can afford.
+
+107:
+  gist: >-
+    LoRA's idea: freeze the weights and learn a low-rank correction, two
+    small matrices whose product is added to the original.
+  said: >-
+    But what we're doing here, as we said, is to decompose these into the
+    weights that we have already pre-trained on and this product of
+    matrices.
+
+108:
+  gist: >-
+    Before LoRA, finetuning updated the whole weight matrix, which means
+    optimizer state for every parameter.
+
+109:
+  gist: >-
+    With LoRA only the two small matrices are trained, so the memory bill is
+    a small fraction of full finetuning.
+
+112:
+  gist: >-
+    Because the correction is separate, swapping the A and B matrices swaps
+    the task on the same frozen base model.
+
+113:
+  gist: >-
+    The original paper applied LoRA to the attention projections, queries
+    and values.
+
+114:
+  gist: >-
+    Current guidance is simpler: applying it to all layers, especially the
+    feed-forward ones, works at least as well.
+
+116:
+  gist: >-
+    Practical differences: LoRA wants a higher learning rate than full
+    finetuning, and degrades at large batch sizes.
+  said: >-
+    That initial reduction by orders of magnitude goes a long way, and that
+    is just a hyperparameter tuning.
+
+120:
+  gist: >-
+    QLoRA quantises the frozen weights to 4 bits and keeps the LoRA
+    corrections in full precision, so training fits on small GPUs.
+
+121:
+  gist: >-
+    The quantisation uses NF4, a 4-bit format whose levels follow a normal
+    distribution, which fits neural network weights better than uniform
+    spacing.
+  said: >-
+    It's in a format called NF4, which assumes that the weights are
+    distributed normally.
+
+123:
+  gist: >-
+    Quantisation constants themselves cost memory, so QLoRA quantises them
+    too.
+
+124:
+  gist: >-
+    Double quantisation: quantise the block constants a second time.
+
+125:
+  gist: >-
+    Doing it twice saves a few more percent of memory for no real cost in
+    quality.
+
+126:
+  gist: >-
+    The payoff is finetuning a large model on one or two consumer GPUs, with
+    a better memory-for-quality trade than 16-bit finetuning.
+
+127:
+  gist: >-
+    Measured on LLaMA 65B: about 16x less VRAM during finetuning, plus
+    roughly 6% from double quantisation.
+  said: >-
+    But basically, when you want to convert your full weights in and out of
+    quantized states, you have constants that are generated.
+
+128:
+  gist: >-
+    Closing slide of lecture 4.

@@ -1,0 +1,342 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 2 of CME 295: position information, normalization, sparse
+    attention and BERT, by Afshine and Shervine Amidi.
+
+9:
+  gist: >-
+    Recap of lecture 1's attention maps: individual heads specialise, and
+    this one has learned to resolve the pronoun "its".
+  said: >-
+    There was some questions about these attention heads, what they do.
+
+10:
+  gist: >-
+    The suggested reading is the original 2017 paper, worth working through
+    in full once the lectures are done.
+  said: >-
+    With that, I highly recommend that you read the transformers paper, so
+    "Attention is All You Need." So it's a very dense paper.
+
+12:
+  gist: >-
+    Self-attention gives every token a direct link to every other token but
+    never sees where they are, so order has to be put back in.
+
+13:
+  gist: >-
+    First fix: add a learned, position-specific embedding to each token
+    vector before the encoder.
+
+14:
+  gist: >-
+    The catch with learned positions is length: the table is fixed, so a
+    model trained on 512 tokens must be retrained to read longer sequences.
+  said: >-
+    But I guess here let's suppose that they are learned.
+
+17:
+  gist: >-
+    The alternative is to hardcode positions as fixed sine and cosine waves
+    of different frequencies, one pair per dimension.
+
+23:
+  gist: >-
+    Because sines are defined for any value, hardcoded positions extend to
+    any sequence length, and nearby positions end up with similar encodings.
+  said: >-
+    But here we have a big advantage, because it can extend to any sequence
+    length, not just a sequence length that you saw at training time.
+
+24:
+  gist: >-
+    What attention actually cares about is relative position, how far apart
+    two tokens are, not where each one sits.
+  said: >-
+    Because if you remember, what you care about is determining how similar
+    tokens are in the self-attention computation.
+
+25:
+  gist: >-
+    So change the attention layer instead of the input: inject position into
+    the query-key scores.
+  said: >-
+    But actually what we want is to reflect this similarity in the attention
+    layer.
+
+27:
+  gist: >-
+    T5 adds a learned bias to each query-key score per head: a lookup table
+    over relative offsets.
+
+28:
+  gist: >-
+    ALiBi adds a linear penalty that grows with distance, needs no training,
+    and extrapolates past the context it was trained on.
+  said: >-
+    We have another message from, I guess, this "Train Short, Test Long"
+    paper, which introduced this method called ALiBi.
+
+31:
+  gist: >-
+    RoPE, now the default: rotate each query and key by an angle
+    proportional to its position, so their dot product depends only on the
+    difference.
+  said: >-
+    But the reality is is that in today's models, most models actually use
+    another kind of position embedding method.
+
+34:
+  gist: >-
+    Applied dimension by dimension, every pair of dimensions is rotated by
+    its own angle, so the trick works at any head size.
+
+35:
+  gist: >-
+    Rotary positions have a long-term decay: as two tokens move apart their
+    attention weight is bounded and fades, which is the behaviour we want.
+  said: >-
+    Meaning that as n minus m is large, we do see the upper bound that gets
+    smaller and smaller.
+
+40:
+  gist: >-
+    Layer norm rescales each token's vector to a fixed mean and variance,
+    then learns a scale and shift, keeping training stable and fast.
+
+44:
+  gist: >-
+    Post-LN normalises after the residual and needs careful warmup; Pre-LN
+    normalises before it and is the modern default, today usually with
+    RMSNorm.
+  said: >-
+    They use something else called RMSNorm-- RMS, Root Mean Square,
+    Normalization, which is basically a variation of what you've seen
+    before.
+
+47:
+  gist: >-
+    Longformer's question: full attention costs n squared, so what happens
+    when a document is far longer than 512 tokens?
+  said: >-
+    But when you do self-attention, you're basically letting every token
+    interact with all other tokens.
+
+48:
+  gist: >-
+    Sliding-window attention looks only at a local neighbourhood, with a few
+    global tokens such as [CLS] that see everything.
+
+49:
+  gist: >-
+    Mistral 7B uses the same idea in a modern LLM: each layer attends within
+    a window, and information travels further as layers stack.
+
+50:
+  gist: >-
+    The window is the sequence version of a receptive field in a
+    convolution: local at each layer, global over the stack.
+  said: >-
+    But I guess nowadays with the sequence lengths that can be very big, you
+    can think of this window as being, o of several, thousands.
+
+51:
+  gist: >-
+    Grouped-query attention shares key and value heads across groups of
+    query heads, which cuts the memory spent holding the KV cache.
+  said: >-
+    But then what you're going to do is to group the projection matrices for
+    the key and the value that you're going to share across several heads.
+
+54:
+  gist: >-
+    Three points on that spectrum: multi-head (one key-value pair per head),
+    group-query (shared within groups), multi-query (one pair for all).
+
+58:
+  gist: >-
+    The family tree: encoder-only for classification (BERT), decoder-only
+    for generation (GPT), encoder-decoder for text-to-text (T5).
+  said: >-
+    But I guess what I'm telling you is modern LLMs, their decoder only
+    models which basically only have the decoder part of the transformer.
+
+59:
+  gist: >-
+    Between roughly 2018 and 2022, encoder-only models were the practical
+    choice for anything that was not generation.
+
+60:
+  gist: >-
+    Since then the balance has shifted, and decoder-only models are what
+    almost everyone uses now.
+  said: >-
+    Whereas next-word prediction is, I would say, the simplest thing you can
+    do.
+
+62:
+  gist: >-
+    BERT expands to Bidirectional Encoder Representations from Transformers:
+    an encoder pretrained to read text in both directions.
+
+67:
+  gist: >-
+    The name says bidirectional, but the encoder is not causal: it sees the
+    whole sequence at once, and masking happens only during pretraining.
+  said: >-
+    Because since we only have the encoder, we have this self-attention
+    layer that truly attends to every other token.
+
+68:
+  gist: >-
+    The timing explains the name: ELMo was submitted in February 2018 and
+    BERT in October, so BERT was named to echo it.
+
+69:
+  gist: >-
+    The joke underneath: Elmo and Bert are both Sesame Street characters.
+
+70:
+  gist: >-
+    Encoder-only: keep the encoder, take its contextual embeddings and put a
+    small head on top, usually reading the [CLS] token.
+
+73:
+  gist: >-
+    Two stages, pretraining on proxy tasks then finetuning per task. Cheap
+    to adapt and strong on classification, but it cannot generate, and
+    finetuning is mandatory.
+  said: >-
+    We're going to dive deep into two of them a bit later on.
+
+75:
+  gist: >-
+    Same block as 2017, used only as an encoder stack: no causal mask, no
+    cross-attention, no decoder.
+
+76:
+  gist: >-
+    BERT's input: WordPiece tokenization into about 30,000 pieces, a [CLS]
+    at the front, [SEP] between segments, and [MASK] during pretraining.
+  said: >-
+    Like at the beginning, so you have the CLS token that is going to carry
+    the bidirectional representation of all your sequence.
+
+77:
+  gist: >-
+    Embeddings are a lookup table plus a position encoding, and BERT adds a
+    third, a segment embedding marking which sentence a token belongs to.
+  said: >-
+    You just additively add them, segment A for tokens in the first part of
+    the sentence, and then segment B in the second part.
+
+78:
+  gist: >-
+    The model's job is representation rather than prediction: produce
+    features good enough for whatever classifier comes after it.
+
+79:
+  gist: >-
+    Masked language modelling: hide 15% of tokens (80% become [MASK], 10% a
+    random word, 10% unchanged) and predict them from both sides.
+  said: >-
+    In 10% of the time, the tokens selected for this MLM objective function
+    are not going to be replaced at all.
+
+80:
+  gist: >-
+    Next sentence prediction: half the pairs are consecutive and half are
+    random, and the model learns to tell which.
+
+81:
+  gist: >-
+    The knobs: L layers, H embedding size, A heads, plus data choices such
+    as which languages and whether to lowercase.
+  said: >-
+    It's a very nice read, alongside the "Attention is All You Need." I
+    would say it's a landmark paper.
+
+82:
+  gist: >-
+    The size ladder runs from BERT-Tiny at 4M parameters to BERT-Large at
+    340M, all the same architecture at different scales.
+
+85:
+  gist: >-
+    Finetuning reuses the pretrained weights for a new task, optionally
+    freezing early layers, and can work from very little labelled data.
+
+89:
+  gist: >-
+    For sentiment, the [CLS] token is repurposed as a slot for the label:
+    whatever the encoder puts there is classified.
+
+92:
+  gist: >-
+    The sentence is padded to a fixed length, so positions are assigned to
+    real tokens and [PAD] alike.
+
+93:
+  gist: >-
+    A segment embedding marks this text as one segment (A); padding is
+    labelled B so the model can learn to ignore it.
+  said: >-
+    Then some other embedding B is added to all the tokens of the segment B.
+    OK, great.
+
+94:
+  gist: >-
+    The three embeddings are summed: token identity, position, and segment.
+
+97:
+  gist: >-
+    A small classifier is attached to the [CLS] output, and it is trained on
+    labelled examples while the encoder is finetuned with it.
+  said: >-
+    Because what we care about is the output embedding of the CLS token,
+    where we plug a linear layer that will learn some classification task.
+
+100:
+  gist: >-
+    BERT's case: state-of-the-art results, genuinely contextual word vectors
+    and reuse across classification tasks, but a short fixed context, high
+    cost and a two-stage recipe.
+  said: >-
+    Afshine has mentioned of techniques as to how we can further grow this
+    context size without making the complexity go completely, basically like
+    hike.
+
+101:
+  gist: >-
+    Distillation: a small model trained on a large model's soft predictions
+    inherits more than hard labels alone could teach it.
+
+103:
+  gist: >-
+    The teacher's full distribution over the vocabulary is the lesson, and
+    the student learns to match it.
+
+104:
+  gist: >-
+    DistilBERT: 6 layers instead of 12, about 1.6x faster, and 97% of BERT's
+    performance.
+
+106:
+  gist: >-
+    RoBERTa removed next-sentence prediction and segment embeddings, found
+    they did not matter, and switched to dynamic masking.
+  said: >-
+    That studied the fact that removing the NSP objective function led to no
+    decrease in performance almost.
+
+108:
+  gist: >-
+    Its real gain came from data: 160 GB instead of 16 GB and longer
+    training, for +4% with the same architecture.
+
+109:
+  gist: >-
+    Closing slide of lecture 2.

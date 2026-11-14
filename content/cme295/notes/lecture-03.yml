@@ -1,0 +1,366 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 3 introduces the LLM itself: what the term means, how it is
+    structured, how it generates text, and what that costs.
+  said: >-
+    Hello, everyone, and welcome to lecture 3 of CME 295.
+
+5:
+  gist: >-
+    Recap: the three transformer families, ending with decoder-only, which
+    is what an LLM is.
+  said: >-
+    It has the encoder of the transformer, the decoder of the transformer.
+
+6:
+  gist: >-
+    Decoder-only models generate by predicting the next token, which is why
+    one architecture now covers classification, generation and chat.
+
+10:
+  gist: >-
+    A language model assigns probabilities to sequences of tokens; an LLM is
+    the same thing at billions of parameters.
+
+12:
+  gist: >-
+    The scale that makes it large: billions of parameters, hundreds of
+    billions of training tokens, and a lot of GPUs.
+  said: >-
+    Although these days there's been a lot of optimizations to have them
+    work on consumer based GPUs.
+
+15:
+  gist: >-
+    An LLM is a decoder-only transformer, and the examples are the whole
+    industry: GPT, LLaMA, Gemma, DeepSeek, Mistral, Qwen.
+  said: >-
+    I would say roughly-- I mean, more than 90% of modern day LLMs, they're
+    all decoder-only.
+
+18:
+  gist: >-
+    The motivation for mixture of experts: not every weight is used on every
+    forward pass, so why compute with all of them?
+  said: >-
+    We ask all parameters of the model to be involved in the computation of
+    the generation.
+
+21:
+  gist: >-
+    A mixture of experts replaces one feed-forward network with several and
+    lets the input pick which ones run.
+
+22:
+  gist: >-
+    That choice is a gate, a small router that scores each expert for the
+    current token.
+
+24:
+  gist: >-
+    Dense MoE runs every expert and averages their outputs, which buys
+    little over a plain network.
+  said: >-
+    But this formula, actually, I guess, assumes that we're actually
+    considering all expert outputs.
+
+25:
+  gist: >-
+    Sparse MoE routes each token to the top-k experts only, so parameters
+    can grow without compute growing with them.
+  said: >-
+    Let's suppose we wanted to put some MoEs in our LLM.
+
+28:
+  gist: >-
+    Routing happens per token and per layer, and only the feed-forward
+    blocks are multiplied, not attention.
+
+30:
+  gist: >-
+    The failure mode is routing collapse, where one expert takes everything;
+    an auxiliary loss pushes tokens towards the others.
+  said: >-
+    It's just the average of the probabilities from the gates.
+
+31:
+  gist: >-
+    What experts learn is visible in Mixtral's routing maps: some specialise
+    by syntax, some by language or topic.
+  said: >-
+    What you would not want to see is to have every token be the same color.
+
+41:
+  gist: >-
+    The core loop: given a prefix, predict a distribution over the next
+    token, pick one, append it, repeat.
+
+44:
+  gist: >-
+    One forward pass turns the sequence into a probability for every token
+    in the vocabulary.
+  said: >-
+    But so far, we have never really dug into exactly how we chose the next
+    token.
+
+46:
+  gist: >-
+    Greedy decoding takes the single most likely token each time: cheap and
+    deterministic, and often flat.
+  said: >-
+    The second problem is if you choose the highest probability token on, I
+    guess, iterative basis, your locally optimal, but you're not necessarily
+    globally optimal.
+
+51:
+  gist: >-
+    Beam search keeps the k most promising prefixes alive at once and
+    expands them in parallel.
+
+55:
+  gist: >-
+    It finds likelier sequences than greedy, but costs k times the compute
+    and still reads as bland.
+  said: >-
+    People use beam search for things like machine translation, where you
+    actually need to have something that is close to something being very
+    likely.
+
+56:
+  gist: >-
+    Sampling draws from the distribution instead of maximising it, which is
+    where variety comes from.
+  said: >-
+    Which is why what we want to do is to actually sample each token.
+
+58:
+  gist: >-
+    Top-k samples from the k best tokens; top-p samples from the smallest
+    set whose probabilities add up to p.
+  said: >-
+    Because I mentioned, these very low probability tokens, they can still,
+    theoretically, be sampled.
+
+59:
+  gist: >-
+    So how does the network produce those probabilities at all?
+  said: >-
+    We just have them and we want to choose what the next token is.
+
+61:
+  gist: >-
+    The final hidden state is projected onto the vocabulary and turned into
+    a distribution by softmax.
+
+62:
+  gist: >-
+    Temperature divides the logits before the softmax: below 1 sharpens the
+    distribution, above 1 flattens it.
+
+64:
+  gist: >-
+    Low temperature gives confident, repetitive text; high temperature gives
+    variety and mistakes.
+
+65:
+  gist: >-
+    Guided decoding exists because some outputs must have a shape, such as
+    valid JSON.
+  said: >-
+    Well, there is a second approach that is called guided decoding.
+
+75:
+  gist: >-
+    At each step it masks out every token that would break the allowed
+    grammar, so only valid continuations can be sampled.
+
+79:
+  gist: >-
+    Context length is the window the model reads at once, and its useful
+    size is smaller than its stated size: context rot.
+  said: >-
+    It controls with respect to what else is in the context.
+
+80:
+  gist: >-
+    A prompt has three parts: the context the model should use, instructions
+    about the task, and constraints on the answer.
+  said: >-
+    But these are the main lines that are usually found in prompts presented
+    to models.
+
+82:
+  gist: >-
+    In-context learning: zero-shot asks without examples, few-shot puts
+    examples in the prompt.
+
+83:
+  gist: >-
+    Examples usually help, at the price of effort to write them, more
+    tokens, more cost and more latency.
+  said: >-
+    This will put some more tokens in the context window.
+
+84:
+  gist: >-
+    Chain of thought asks the model to write its reasoning first, which
+    improves multi-step answers at the cost of more tokens.
+  said: >-
+    Whereas when you give the full chain of reasoning, then it becomes clear
+    as to what led to that response.
+
+85:
+  gist: >-
+    Self-consistency samples several reasoning paths and takes the majority
+    answer, trading compute for accuracy.
+
+89:
+  gist: >-
+    Efficiency divides into exact work (removing redundancy, managing
+    memory, rewriting the maths) and approximations (architecture,
+    embeddings, decoding).
+  said: >-
+    Let's try to see what we could do to manage the memory in the best way.
+
+90:
+  gist: >-
+    The attention block is where most of the saving can be made, because
+    that is where the cost sits.
+  said: >-
+    First, looking at the attention layer, seeing what kind of techniques we
+    could have there.
+
+95:
+  gist: >-
+    Generating token by token repeats work: each new token attends to all
+    previous ones, whose projections never change.
+
+100:
+  gist: >-
+    So cache the keys and values of past tokens instead of recomputing them
+    on every step.
+
+101:
+  gist: >-
+    KV caching is why generation is fast after the first token, and why long
+    contexts eat memory.
+  said: >-
+    But we want to have a way to reuse the past computations we had done to
+    compute the key representation of the previous tokens and the value
+    representation of the previous tokens.
+
+103:
+  gist: >-
+    In vanilla multi-head attention the number of query, key and value heads
+    is the same, h.
+  said: >-
+    These are any technique from last week that we could reuse that could
+    reduce this number.
+
+104:
+  gist: >-
+    Grouped-query attention shares each key and value head across a group of
+    query heads.
+
+105:
+  gist: >-
+    The spectrum again: multi-head, grouped-query and multi-query, trading
+    quality for a smaller cache.
+
+106:
+  gist: >-
+    With GQA there are h query heads but only G key and value heads, so the
+    cache shrinks by h/G.
+
+107:
+  gist: >-
+    PagedAttention starts from an observation: serving systems waste most of
+    the memory they reserve for the KV cache.
+
+108:
+  gist: >-
+    It stores keys and values in non-contiguous blocks allocated on demand,
+    much like virtual memory pages.
+  said: >-
+    Internal fragmentation is basically the space that is being reserved by
+    the model to complete the request.
+
+109:
+  gist: >-
+    Latent attention attacks the same problem from the other side: the
+    stored key and value vectors are too big.
+
+110:
+  gist: >-
+    Instead of caching full keys and values, it caches a compressed latent
+    and reconstructs them when needed.
+  said: >-
+    You have h such projections and you have h such resulting embeddings
+    that you need to store in your cache.
+
+111:
+  gist: >-
+    Before compression, every head stores its own full-size keys and values
+    for every token.
+
+115:
+  gist: >-
+    After it, heads share one compressed latent per token, so the cache
+    shrinks by a large factor.
+
+116:
+  gist: >-
+    Token generation has its own tricks, separate from the attention ones.
+  said: >-
+    We are going to cover techniques that operate at the output token level.
+
+117:
+  gist: >-
+    Speculative decoding uses a small draft model to propose several tokens
+    and the large model to check them.
+
+118:
+  gist: >-
+    The draft model writes k tokens cheaply, at its own probabilities.
+
+119:
+  gist: >-
+    The target model then scores all k proposals in a single forward pass.
+  said: >-
+    Since the LLM is small, this is typically done faster than with the big
+    LLM.
+
+120:
+  gist: >-
+    Each proposal is accepted with a probability based on the ratio of the
+    two models, and rejected ones are resampled, so the output distribution
+    is unchanged.
+  said: >-
+    Otherwise, you have some acceptance rejection mechanism that either
+    accepts the token or rejects it.
+
+121:
+  gist: >-
+    Multi-token prediction trains several heads to predict several future
+    tokens at once.
+
+122:
+  gist: >-
+    Those heads propose the next k tokens in one step: speculation without a
+    second model.
+
+123:
+  gist: >-
+    Summary slide: the same two families of efficiency work.
+
+124:
+  gist: >-
+    And the mapping from problem to remedy: KV cache and PagedAttention,
+    speculative decoding, GQA, latent attention, multi-token prediction.
+
+125:
+  gist: >-
+    Closing slide of lecture 3.

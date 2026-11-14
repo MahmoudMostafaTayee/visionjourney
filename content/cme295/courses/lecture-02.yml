@@ -1,0 +1,13 @@
+id: lecture-02
+category:
+  id: foundations
+order_index: 1
+translations:
+  en:
+    title: Lecture 2 · Position, Layers and BERT
+    description: Where position comes from, why layer norm matters, how Longformer makes attention sparse,
+      and what BERT and its siblings changed about pretraining.
+    meta_title: Lecture 2 · Position, Layers and BERT — CME 295
+    meta_description: Where position comes from, why layer norm matters, how Longformer makes attention
+      sparse, and what BERT and its siblings changed about pretraining.
+    meta_keywords: position encodings, layer normalization, Longformer, BERT, transformer models

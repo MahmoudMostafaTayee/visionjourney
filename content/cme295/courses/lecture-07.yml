@@ -1,0 +1,13 @@
+id: lecture-07
+category:
+  id: frontier
+order_index: 6
+translations:
+  en:
+    title: Lecture 7 · Retrieval-Augmented Generation
+    description: 'Giving a model memory it can look things up in: chunking, embeddings, vector search,
+      and how retrieval is wired into generation.'
+    meta_title: Lecture 7 · Retrieval-Augmented Generation — CME 295
+    meta_description: 'Giving a model memory it can look things up in: chunking, embeddings, vector search,
+      and how retrieval is wired into generation.'
+    meta_keywords: RAG, retrieval, embeddings, vector search, chunking, grounding

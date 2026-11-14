@@ -1,0 +1,389 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 5: the third training stage, where a model is taught which
+    answers people actually prefer.
+  said: >-
+    to start the lecture. So today we're going<00:01:00.079><c>
+    to</c><00:01:00.239><c> talk</c><00:01:00.640><c>
+    about</c><00:01:01.280><c> LLM</c><00:01:01.920><c> tuning.</c> going to
+    talk about LLM tuning.
+
+4:
+  gist: >-
+    The lifecycle so far: pretraining gives knowledge, finetuning gives
+    behaviour, preference tuning aligns the model with what people prefer.
+
+5:
+  gist: >-
+    This lecture is about that last stage.
+  said: >-
+    fed. But what this model can do is only fed. But what this model can do
+    is only predict<00:02:24.560><c> the</c><00:02:24.879><c>
+    next</c><00:02:25.040><c> token.</c> predict the next token.
+
+6:
+  gist: >-
+    Its three parts: collecting preference data, RLHF, and DPO.
+
+9:
+  gist: >-
+    The problem it solves: an SFT model can behave badly, and it needs a
+    negative signal, not just more demonstrations.
+
+13:
+  gist: >-
+    Why preferences instead of more demonstrations: comparing two answers is
+    easier than writing a good one, SFT data is easy to get subtly wrong,
+    and bad behaviour is often a symptom of that.
+  said: >-
+    about the distribution of prompts that are<00:08:53.760><c>
+    in</c><00:08:53.920><c> the</c><00:08:54.080><c>
+    SFT</c><00:08:54.560><c> data.</c> are in the SFT data.
+
+14:
+  gist: >-
+    So the lecture covers how preference data is collected, then the RLHF
+    method, then DPO.
+
+19:
+  gist: >-
+    Preference data comes in three shapes: pointwise scores, pairwise
+    comparisons, and listwise orderings.
+  said: >-
+    the model. You<00:12:02.720><c> have</c><00:12:02.800><c>
+    a</c><00:12:03.040><c> few</c><00:12:03.279><c>
+    ways</c><00:12:03.920><c> to</c><00:12:04.240><c>
+    construct</c><00:12:05.360><c> your</c> You have a few ways to construct
+    your You have a few ways to construct your preference<00:12:06.800><c>
+    data.</c> preference data.
+
+21:
+  gist: >-
+    The recipe: generate several answers to the same prompt, then label
+    them, by humans or by a proxy such as a judge model, on a binary or
+    graded scale.
+  said: >-
+    having a pair wise preference data set having a pair wise preference
+    data set on<00:16:46.399><c> the</c><00:16:46.560><c>
+    binary</c><00:16:47.040><c> scale.</c> on the binary scale.
+
+22:
+  gist: >-
+    With data in hand, the first method is reinforcement learning from human
+    feedback.
+  said: >-
+    more details in a second. Uh but as the name<00:18:23.520><c>
+    indicates</c><00:18:24.880><c> RLHF</c> name indicates RLHF name
+    indicates RLHF relies<00:18:26.799><c> on</c><00:18:27.120><c> RL.</c>
+    relies on RL.
+
+23:
+  gist: >-
+    The vocabulary of RL: an agent takes actions in an environment, sees
+    states, follows a policy and receives rewards.
+  said: >-
+    it also receives some rewards. So<00:19:47.200><c>
+    sometimes</c><00:19:47.600><c> it's</c><00:19:47.919><c>
+    a</c><00:19:48.160><c> good</c><00:19:48.400><c> reward,</c> So
+    sometimes it's a good reward, So sometimes it's a good reward,
+    sometimes<00:19:49.200><c> it's</c><00:19:49.600><c>
+    bad</c><00:19:49.840><c> rewards.</c> sometimes it's bad rewards.
+
+24:
+  gist: >-
+    To apply it to language, each term needs a meaning in text.
+
+25:
+  gist: >-
+    The state is the text produced so far, which is also what the model
+    reads.
+  said: >-
+    in so it's simply the input that it has in so it's simply the input that
+    it has so<00:20:23.200><c> far.</c> so far.
+
+26:
+  gist: >-
+    The action is the next token, the environment is the vocabulary plus
+    whatever the model is talking to, and the policy is the model's next-
+    token distribution.
+
+27:
+  gist: >-
+    The episode ends when the answer is complete, and the reward is assigned
+    to the whole response.
+
+28:
+  gist: >-
+    The policy is a probability distribution, and training means moving that
+    distribution towards answers that score well.
+  said: >-
+    the output of the LLM given the input in order<00:21:24.159><c>
+    to</c><00:21:24.320><c> determine</c><00:21:24.720><c>
+    the</c><00:21:24.880><c> next</c><00:21:25.039><c> token.</c> order to
+    determine the next token.
+
+30:
+  gist: >-
+    The goal, stated as an objective: learn the policy whose outputs humans
+    prefer.
+  said: >-
+    input. Yeah. Cool.<00:25:45.039><c> Yeah.</c><00:25:45.279><c>
+    So</c><00:25:45.520><c> far</c><00:25:45.600><c> so</c><00:25:45.919><c>
+    good.</c> Cool. Yeah. So far so good.
+
+33:
+  gist: >-
+    RLHF has two steps: first a reward model that scores answers, then
+    reinforcement learning against that score.
+  said: >-
+    one thing. So RLHF is reinforcement learning<00:27:43.919><c>
+    from</c><00:27:44.240><c> human</c><00:27:44.720><c> feedback.</c>
+    learning from human feedback.
+
+37:
+  gist: >-
+    The reward model is trained on comparisons: given a prompt and two
+    responses, learn which one people rated higher.
+
+39:
+  gist: >-
+    The standard formulation is Bradley-Terry: the probability that one
+    answer beats another is a sigmoid of the difference in their scores.
+  said: >-
+    parameters that somehow maximize the parameters that somehow maximize
+    the probability<00:35:44.000><c> of</c><00:35:44.320><c>
+    you</c><00:35:44.960><c> seeing</c> probability of you seeing
+    probability of you seeing those<00:35:47.520><c> examples.</c> those
+    examples.
+
+41:
+  gist: >-
+    Training the reward model learns those scores from pairwise data, so
+    that ordering predictions match human ordering.
+
+42:
+  gist: >-
+    It needs on the order of ten thousand comparisons, which is where the
+    human feedback in the name comes from.
+
+43:
+  gist: >-
+    The model itself is a pretrained language model with a classification
+    head instead of a next-token head, often an encoder reading [CLS].
+  said: >-
+    project the embedding of the CLS token. This<00:40:44.160><c>
+    could</c><00:40:44.320><c> very</c><00:40:44.720><c>
+    well</c><00:40:45.200><c> be</c><00:40:45.359><c>
+    an</c><00:40:45.599><c> option.</c> This could very well be an option.
+
+46:
+  gist: >-
+    Step 2 runs reinforcement learning against that frozen reward model,
+    updating the language model's weights to favour high-scoring answers.
+
+50:
+  gist: >-
+    Only the language model is trained; the reward model stays frozen and
+    acts as the scorer.
+
+55:
+  gist: >-
+    PPO's objective has two terms: maximise the reward, and do not drift too
+    far from the model you started from, which keeps training stable.
+  said: >-
+    deviate too much because of reward hacking<00:53:57.280><c>
+    and</c><00:53:57.520><c> instability</c><00:53:58.240><c>
+    and</c><00:53:58.480><c> and</c><00:53:58.800><c>
+    so</c><00:53:58.960><c> on.</c> hacking and instability and and so on.
+
+57:
+  gist: >-
+    The standard algorithm here is PPO, proximal policy optimisation.
+  said: >-
+    called PO. So<00:54:09.760><c> PO</c><00:54:10.400><c>
+    stands</c><00:54:10.800><c> for</c><00:54:11.839><c>
+    proximal</c><00:54:12.800><c> policy</c> So PO stands for proximal
+    policy So PO stands for proximal policy optimization.
+
+59:
+  gist: >-
+    The reward term comes from the reward model, and the drift term is a
+    penalty on moving away from the SFT model.
+  said: >-
+    model. So here the reference model would be be your<00:54:56.400><c>
+    SFT</c><00:54:56.880><c> model.</c> So you have these two parts.
+
+60:
+  gist: >-
+    The loop: sample responses, score them, compute the policy gradient,
+    update.
+
+65:
+  gist: >-
+    PPO actually maximises advantages rather than raw rewards, subtracting a
+    learned baseline of what the current policy would expect to score.
+  said: >-
+    is typically trained jointly with the is typically trained jointly with
+    the policy.
+
+67:
+  gist: >-
+    PPO-Clip clips the ratio between the new and old policy so a single
+    update cannot move too far, which is where the proximal in the name
+    comes from.
+  said: >-
+    variants of the PO loss. The<01:03:54.559><c> first</c><01:03:54.720><c>
+    one</c><01:03:55.119><c> is</c><01:03:55.440><c>
+    called</c><01:03:55.839><c> PO</c><01:03:56.400><c> clip.</c> The first
+    one is called PO clip.
+
+68:
+  gist: >-
+    The ratio is called r in the paper, which is confusing because rewards
+    are also called r.
+
+70:
+  gist: >-
+    The clip keeps updates inside a trust region: a change is rewarded until
+    it leaves the bracket, then it stops counting.
+
+73:
+  gist: >-
+    The alternative is a KL penalty: an explicit term measuring how far the
+    policy has moved from a reference model.
+  said: >-
+    much from the base model and also from the<01:14:33.199><c>
+    previous</c><01:14:33.440><c> iteration.</c> the previous iteration.
+
+74:
+  gist: >-
+    In current practice the KL term is measured against the original base
+    model.
+
+76:
+  gist: >-
+    PPO's weakness is that it needs four models in memory, the policy, a
+    value model, the reward model and the reference; GRPO and REINFORCE drop
+    some of them.
+  said: >-
+    to compare with the current policy. So to compare with the current
+    policy. So it's<01:15:08.159><c> a</c><01:15:08.320><c>
+    lot</c><01:15:08.400><c> of</c><01:15:08.560><c> models.</c> it's a lot
+    of models.
+
+82:
+  gist: >-
+    The list of costs: a two-stage pipeline, many hyperparameters,
+    instability, unclear metrics, a need for output diversity, and no clear
+    proof that RL is necessary at all.
+  said: >-
+    you would use to monitor your training would<01:18:27.360><c>
+    be</c><01:18:28.159><c> the</c><01:18:28.480><c>
+    average</c><01:18:28.880><c> rewards.</c> would be the average rewards.
+
+85:
+  gist: >-
+    Best-of-N is the shortcut: skip RL entirely, generate several answers
+    and let the reward model pick the best.
+  said: >-
+    traditional SFT framework to tell your traditional SFT framework to tell
+    your model<01:22:24.080><c> to</c><01:22:24.400><c>
+    not</c><01:22:24.639><c> generate</c><01:22:25.040><c> that.</c> model
+    to not generate that.
+
+92:
+  gist: >-
+    The reward model ranks three candidate answers, and the highest-scoring
+    one is returned, no training involved.
+  said: >-
+    one is no, don't spend time with the teddy<01:24:37.600><c>
+    bear,</c><01:24:37.760><c> which</c><01:24:37.920><c>
+    is</c><01:24:38.159><c> not</c><01:24:38.320><c> a</c><01:24:38.480><c>
+    good</c><01:24:38.639><c> answer.</c> teddy bear, which is not a good
+    answer.
+
+93:
+  gist: >-
+    The last section removes the reinforcement learning.
+
+94:
+  gist: >-
+    Two limitations push towards something simpler: RL is a multi-model,
+    multi-stage pipeline, and Best-of-N costs N times the compute at
+    inference.
+
+96:
+  gist: >-
+    So why not train on preferences with ordinary supervised learning?
+  said: >-
+    depending on how your scaling is done, you<01:29:08.960><c>
+    actually</c><01:29:09.199><c> don't</c><01:29:09.520><c>
+    care</c><01:29:09.840><c> about</c><01:29:10.080><c>
+    the</c><01:29:10.320><c> scale.</c> you actually don't care about the
+    scale.
+
+98:
+  gist: >-
+    DPO answers that: rewrite the RL objective as a loss over preference
+    pairs, with no separate reward model.
+  said: >-
+    Thank you. So,<01:29:57.600><c> for</c><01:29:57.840><c>
+    this</c><01:29:58.080><c> last</c><01:29:58.400><c>
+    part,</c><01:29:58.960><c> we're</c><01:29:59.280><c>
+    going</c><01:29:59.440><c> to</c> So, for this last part, we're going to
+    So, for this last part, we're going to talk<01:30:00.719><c>
+    about</c><01:30:01.120><c> DPO.</c> talk about DPO.
+
+100:
+  gist: >-
+    It operates directly on the same pairwise data, and turns out to be
+    Bradley-Terry with a particular choice of reward.
+
+101:
+  gist: >-
+    The loss raises the relative likelihood of the chosen answer and lowers
+    the rejected one, with a KL term to the reference model implicit in the
+    formula.
+
+105:
+  gist: >-
+    The derivation: start from the PPO objective, solve for the optimal
+    policy, read off the implied reward, then plug it into Bradley-Terry.
+
+106:
+  gist: >-
+    Substituting that reward gives a loss containing only the two policies
+    and the two answers, which is what makes it trainable as plain
+    supervised learning.
+  said: >-
+    policy and then the preference pairs you have<01:39:01.840><c>
+    them</c><01:39:02.000><c> as</c><01:39:02.239><c> input.</c> have them
+    as input.
+
+107:
+  gist: >-
+    PPO versus DPO: DPO is far simpler to implement and needs no reward or
+    value model, while performance differs by task and implementation, with
+    no clear winner.
+  said: >-
+    uh version of your model. Yeah I guess uh version of your model. Yeah I
+    guess so.
+
+108:
+  gist: >-
+    A reminder of how the model behaved before preference tuning.
+
+110:
+  gist: >-
+    After it, the same question gets a gentler answer, which is what the
+    preference data asked for.
+  said: >-
+    much better to the ears of of the person much better to the ears of of
+    the person who<01:46:21.840><c> asks.</c> who asks.
+
+111:
+  gist: >-
+    Closing slide of lecture 5.

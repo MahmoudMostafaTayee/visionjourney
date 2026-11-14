@@ -160,42 +160,49 @@ class Section:
 
 
 def contents_pages(pages: list[Page]) -> tuple[list[int], list[str]]:
-    """Find the reprinted table-of-contents pages and the section names.
+    """Find the reprinted agenda pages and the section names.
 
-    A contents page keeps all its text in the right half of the slide; the
-    current section is drawn highlighted, so it vanishes from the extracted
-    text. The missing entry names the section that is starting.
+    An agenda page is one column of section titles, reprinted before every
+    section; the section now starting is drawn highlighted, so it vanishes from
+    the extracted text and the missing entry names it. Some decks put the list
+    on the right, others on the left, so both columns are tried.
     """
-    def items(page: Page) -> list[tuple[float, str]]:
-        """Entries written in the right-hand column: the contents list."""
-        right = [r for row in page.rows for r in row if r.left > page.width * 0.45]
+    def column(page: Page, side: str) -> list[tuple[float, str]]:
+        if side == "right":
+            runs = [r for row in page.rows for r in row if r.left > page.width * 0.45]
+        else:
+            runs = [r for row in page.rows for r in row if r.left < page.width * 0.45]
         grouped: list[list[Run]] = []
-        for run in sorted(right, key=lambda r: (r.top, r.left)):
+        for run in sorted(runs, key=lambda r: (r.top, r.left)):
             if grouped and run.top - grouped[-1][0].top <= ROW_TOLERANCE:
                 grouped[-1].append(run)
             else:
                 grouped.append([run])
         return [(row[0].top, clean(" ".join(r.text for r in row))) for row in grouped]
 
-    def signature(page: Page) -> tuple[str, ...]:
-        return tuple(sorted({t for _, t in items(page)}))
+    def find(side: str) -> tuple[list[int], list[str]]:
+        candidates = [(p, tuple(sorted({t for _, t in column(p, side)}))) for p in pages
+                      if 5 <= len(column(p, side)) <= 9]
+        if len(candidates) < 3:
+            return [], []
+        # The agenda is the one column that is reprinted verbatim before every
+        # section; figures fill a column too, but each of those appears once, so
+        # the most repeated signature wins.
+        counts: dict[tuple[str, ...], int] = {}
+        for _, sig in candidates:
+            counts[sig] = counts.get(sig, 0) + 1
+        sig, repeated = max(counts.items(), key=lambda item: item[1])
+        if repeated < 3:
+            return [], []
+        return sorted(p.number for p, s in candidates if s == sig), list(sig)
 
-    candidates = [(p, signature(p)) for p in pages if 5 <= len(items(p)) <= 9]
-    if len(candidates) < 3:
-        return [], []
-
-    # The contents page is the only right-hand list that is reprinted verbatim
-    # before every section. Figure diagrams also fill the right column, but each
-    # of those appears once, so the most repeated signature wins.
-    counts: dict[tuple[str, ...], int] = {}
-    for _, sig in candidates:
-        counts[sig] = counts.get(sig, 0) + 1
-    sig, repeated = max(counts.items(), key=lambda item: item[1])
-    if repeated < 3:
-        return [], []
-
-    markers = sorted(p.number for p, s in candidates if s == sig)
-    return markers, list(sig)
+    # Most decks put the agenda on the right; a few put it on the left, and the
+    # right column then holds diagrams that must not be mistaken for one.
+    for side in ("right", "left"):
+        markers, names = find(side)
+        if markers:
+            return markers, names
+    return [], []
 
 
 def cover_title(page: Page, lecture: int) -> str:
@@ -211,6 +218,12 @@ def cover_title(page: Page, lecture: int) -> str:
 def sections(pages: list[Page], deck_title: str) -> list[Section]:
     markers, names = contents_pages(pages)
     if not markers:
+        # Not every deck reprints an agenda. Splitting a long sectionless deck
+        # into readable lessons beats one 80-slide wall, so it is cut into
+        # chunks and each chunk is named after the slide it opens on.
+        if len(pages) > 2 * SECTION_PAGES:
+            return [Section("", pages[i:i + SECTION_PAGES])
+                    for i in range(0, len(pages), SECTION_PAGES)]
         return [Section(deck_title, pages)]
 
     by_number = {p.number: p for p in pages}
@@ -229,6 +242,9 @@ def sections(pages: list[Page], deck_title: str) -> list[Section]:
             out.append(Section("", body))
     return out
 
+
+SECTION_PAGES = 18
+LESSON_SLIDES = 14
 
 STOPWORDS = {"a", "an", "and", "as", "at", "for", "in", "is", "of", "on", "the", "to", "with"}
 
@@ -333,6 +349,7 @@ def main() -> int:
     parser.add_argument("--dpi", type=int, default=120)
     parser.add_argument("--quality", type=int, default=82)
     parser.add_argument("--report", action="store_true", help="print the parse without writing")
+    parser.add_argument("--force", action="store_true", help="re-render slide images that already exist")
     args = parser.parse_args()
 
     source = Path(args.src).expanduser()
@@ -354,43 +371,61 @@ def main() -> int:
         sections_ = sections(pages, deck_title)
         print(f"lecture {lecture}: {len(pages)} pages → {len(sections_)} sections")
 
+        lessons_dir = topic / "lessons" / "en" / course
+        if not args.report:
+            lessons_dir.mkdir(parents=True, exist_ok=True)
+            for stale in lessons_dir.glob("section-*.md"):
+                stale.unlink()
+
+        units: list[tuple[str, list[Page]]] = []
         for index, section in enumerate(sections_, start=1):
             slides = collapse_overlays(section.pages)
-            if section.name == deck_title and index == 1:
+            if section.name == deck_title and index == 1 and len(slides) <= 12:
                 section.name = args.intro_title
             elif not section.name:
                 section.name = next((p.title for p in slides if p.title), deck_title)
-            print(f"  {index:02d} {section.name[:52]:<52} {len(section.pages):>3} pages → {len(slides):>3} slides")
+            # A section twice the length of a lesson is a wall, not a lesson, so
+            # it is cut into parts named after the slide each one opens on.
+            parts = ([slides[i:i + LESSON_SLIDES] for i in range(0, len(slides), LESSON_SLIDES)]
+                     if len(slides) > LESSON_SLIDES + 6 else [slides])
+            print(f"  {index:02d} {section.name[:52]:<52} {len(section.pages):>3} pages → "
+                  f"{len(slides):>3} slides"
+                  + (f" → {len(parts)} lessons" if len(parts) > 1 else ""))
             if args.report:
                 for page in slides:
                     print(f"       p{page.number:>3}  {page.title[:70]}")
                 continue
+            for part in parts:
+                name = (section.name if len(parts) == 1
+                        else next((p.title for p in part if p.title), section.name))
+                units.append((name, part))
 
-            lessons_dir = topic / "lessons" / "en" / course
-            lessons_dir.mkdir(parents=True, exist_ok=True)
-            slug = f"section-{index:02d}-{slugify(section.name)}"
+        if args.report:
+            continue
+
+        for order, (name, slides) in enumerate(units, start=1):
+            slug = f"section-{order:02d}-{slugify(name)}"
             numbers = [p.number for p in slides]
             meta = {
                 "lesson_id": slug,
                 "course_id": course,
                 "lang": "en",
-                "order_index": index,
-                "title": section.name,
+                "order_index": order,
+                "title": name,
                 "description": (f"Slides {numbers[0]}–{numbers[-1]} of lecture {lecture}: "
                                 f"{len(slides)} slides from the original deck."),
-                "meta_title": f"{section.name} — Lecture {lecture}",
-                "meta_description": f"Slide-by-slide walkthrough of {section.name}, lecture {lecture}.",
-                "meta_keywords": f"{section.name}, lecture {lecture}, slides",
+                "meta_title": f"{name} — Lecture {lecture}",
+                "meta_description": f"Slide-by-slide walkthrough of {name}, lecture {lecture}.",
+                "meta_keywords": f"{name}, lecture {lecture}, slides",
             }
             (lessons_dir / f"{slug}.md").write_text(
-                front_matter(meta) + lesson_markdown(section, lecture, course, slides), encoding="utf-8")
+                front_matter(meta) + lesson_markdown(Section(name, slides), lecture, course, slides),
+                encoding="utf-8")
 
             for page in slides:
-                render(pdf, page.number, topic / "slides" / course / f"slide-{page.number:03d}.webp",
-                       args.dpi, args.quality)
-
-        if args.report:
-            continue
+                target = topic / "slides" / course / f"slide-{page.number:03d}.webp"
+                if args.force or not target.exists():
+                    render(pdf, page.number, target, args.dpi, args.quality)
         course_file = topic / "courses" / f"{course}.yml"
         if not course_file.exists():
             course_file.parent.mkdir(parents=True, exist_ok=True)

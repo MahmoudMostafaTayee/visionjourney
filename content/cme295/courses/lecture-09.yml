@@ -1,0 +1,13 @@
+id: lecture-09
+category:
+  id: frontier
+order_index: 8
+translations:
+  en:
+    title: Lecture 9 · Beyond Text
+    description: 'The quarter in review, then the frontier: transformers for images, audio and code, their
+      current limits, and what crosses over between modalities.'
+    meta_title: Lecture 9 · Beyond Text — CME 295
+    meta_description: 'The quarter in review, then the frontier: transformers for images, audio and code,
+      their current limits, and what crosses over between modalities.'
+    meta_keywords: multimodality, vision transformers, speech, code, limitations

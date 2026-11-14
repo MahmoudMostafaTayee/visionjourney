@@ -1,0 +1,458 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 7: retrieval-augmented generation, tool calling and agents, the
+    three ways to give a model knowledge and hands.
+  said: >-
+    Hello everyone. AND Hello everyone. AND welcome <00:00:09.463><c>to</c>
+    welcome to welcome to seventh <00:00:10.242><c>year
+    </c><00:00:10.736><c>CMI </c><00:00:11.230><c>295.</c> seventh year CMI
+    295.
+
+3:
+  gist: >-
+    Recap of reasoning models: a question now produces a reasoning chain and
+    then an answer, trained with GRPO.
+  said: >-
+    I conclude that we I conclude that we did <00:01:00.073><c>last
+    </c><00:01:00.757><c>time.</c> did last time.
+
+5:
+  gist: >-
+    Recap of the original DeepSeek R1 recipe.
+
+6:
+  gist: >-
+    And the later variants, DAPO and Dr. GRPO, that fixed the length bias.
+
+10:
+  gist: >-
+    The lecture's map: RAG first, then tool calling, then agents.
+
+13:
+  gist: >-
+    Why RAG exists: a model's knowledge stops at its pretraining data, so
+    anything newer or private is invisible to it.
+
+15:
+  gist: >-
+    Second limit: the context window is finite, so you cannot simply paste
+    the whole knowledge base in.
+
+17:
+  gist: >-
+    Third: models get distracted by irrelevant context, so more text can
+    make answers worse, not better.
+
+19:
+  gist: >-
+    Fourth: every input token is billed, so stuffing the prompt is a cost
+    decision too.
+
+21:
+  gist: >-
+    RAG's answer: retrieve the relevant pieces and put only those in the
+    prompt.
+
+24:
+  gist: >-
+    The pipeline as a picture: knowledge base, retrieval, augmented prompt,
+    generation.
+
+28:
+  gist: >-
+    Three steps: retrieve relevant documents by similarity, augment the
+    prompt with them, generate the answer.
+
+29:
+  gist: >-
+    The lecture focuses on the retrieval step, which is where the quality is
+    won or lost.
+
+33:
+  gist: >-
+    Prerequisite: a knowledge base built by collecting documents, splitting
+    them into chunks, and embedding each chunk.
+  said: >-
+    definitely needed definitely needed too <00:21:18.571><c>big</c> too big
+    too big embedding <00:21:20.202><c>size.</c> embedding size.
+
+35:
+  gist: >-
+    Retrieval is two stages: candidates chosen for recall, then a reranker
+    that maximises precision.
+
+42:
+  gist: >-
+    Candidate retrieval with a bi-encoder: embed the query and every chunk
+    independently, then compare vectors.
+  said: >-
+    you know BERT, and I now I <00:32:38.933><c>know
+    </c><00:32:39.103><c>you </c><00:32:39.273><c>are
+    </c><00:32:39.443><c>him.</c> I know you are him.
+
+43:
+  gist: >-
+    The example shows why semantics matters: a question about Cuddly matches
+    a passage that never says the query's words.
+
+45:
+  gist: >-
+    Keyword search with BM25 is the complement: it matches terms exactly and
+    ignores meaning.
+
+47:
+  gist: >-
+    Hybrid retrieval combines both, which is more robust than either alone.
+  said: >-
+    cutting method cutting method fragments fragments will
+    <00:37:42.857><c>definitely </c><00:37:43.215><c>lead</c> will
+    definitely lead will definitely lead to <00:37:44.355><c>agreed
+    </c><00:37:44.941><c>things.</c> to agreed things.
+
+51:
+  gist: >-
+    One trick improves semantic recall: have the model write a hypothetical
+    answer and search with that instead of the question.
+
+53:
+  gist: >-
+    Another trick is context: prepend a summary of the surrounding document
+    to each chunk before embedding it.
+
+55:
+  gist: >-
+    Anthropic's version of that prompt, asking a cheap model for one
+    sentence of context per chunk.
+  said: >-
+    about this option. She about this option. She is called is called is
+    called caching <00:41:42.284><c>of </c><00:41:42.887><c>questions.</c>
+    caching of questions.
+
+57:
+  gist: >-
+    The cost is real, but prompt caching makes the document part of the bill
+    almost disappear.
+
+60:
+  gist: >-
+    Ranking uses a cross-encoder: query and chunk go through the model
+    together, so the score can use their interaction.
+  said: >-
+    top-K. fragments. Therefore, this <00:45:25.359><c>second
+    </c><00:45:25.671><c>stage</c> this second stage this second stage is
+    called is called is called ranking <00:45:27.390><c>or</c> ranking or
+    ranking or even even reranking.
+
+62:
+  gist: >-
+    The reranker reorders the candidates, and only the top few go into the
+    prompt.
+
+66:
+  gist: >-
+    Retrieval needs its own measurement: were the chunks that came back
+    actually relevant?
+
+71:
+  gist: >-
+    NDCG@k scores the whole ranking, discounted by position and normalised
+    against a perfect ordering.
+
+72:
+  gist: >-
+    Reciprocal rank@k cares only about how early the first relevant chunk
+    appears.
+
+76:
+  gist: >-
+    Recall@k counts relevant chunks found, precision@k counts the fraction
+    of retrieved chunks that were relevant.
+  said: >-
+    rank, then rank will <00:54:40.263><c>be </c><00:54:40.563><c>equal
+    </c><00:54:40.863><c>to </c><00:54:41.163><c>two.</c> will be equal to
+    two.
+
+77:
+  gist: >-
+    That closes RAG, and the lecture turns to tools.
+
+79:
+  gist: >-
+    RAG works on unstructured text; tools let the model reach structured
+    data and live systems instead.
+
+80:
+  gist: >-
+    A tool is a function the model can ask to run, and the model never runs
+    it itself.
+
+82:
+  gist: >-
+    Definition: tool calling lets a system complete tasks by accessing
+    external resources, and sometimes acting on them.
+  said: >-
+    task. And then, uh, task. And then, uh, addiction,
+    <01:02:45.634><c>uh,</c> addiction, uh, addiction, uh, potentially,
+    <01:02:46.607><c>from</c> potentially, from potentially, from external
+    <01:02:48.308><c>resources.</c> external resources.
+
+85:
+  gist: >-
+    The example: asked for a bear nearby, a plain model apologises, while a
+    model with tools has a function that answers.
+  said: >-
+    LLM, and what steps do we we <01:04:43.589><c>can
+    </c><01:04:43.825><c>go </c><01:04:44.061><c>through
+    </c><01:04:44.297><c>to</c> we can go through to we can go through to to
+    <01:04:44.876><c>execute </c><01:04:45.208><c>such
+    </c><01:04:45.540><c>a </c><01:04:45.872><c>request.</c> to execute such
+    a request.
+
+87:
+  gist: >-
+    The function is ordinary code: call an API, compute a distance, return a
+    documented object.
+
+88:
+  gist: >-
+    Which is why the comment about an optional backend call matters: the
+    tool may hit the network.
+
+89:
+  gist: >-
+    And why it returns a structured result rather than prose: the model will
+    read it.
+
+93:
+  gist: >-
+    The loop: the model chooses a function and its arguments, the backend
+    executes it, and the model turns the result into an answer.
+  said: >-
+    There is only you. function, <01:08:39.521><c>and
+    </c><01:08:39.995><c>then, </c><01:08:40.469><c>uh,</c> function, and
+    then, uh, function, and then, uh, full
+    <01:08:41.934><c>documentation.</c> full documentation.
+
+97:
+  gist: >-
+    There are two ways to teach this: training on a desired prediction, or
+    describing the tool in a prompt.
+
+98:
+  gist: >-
+    Training generalises across phrasings of the same request, which is what
+    makes a tool usable in production.
+  said: >-
+    actually perform actually perform calling <01:10:03.894><c>this
+    </c><01:10:04.519><c>function.</c> calling this function.
+
+101:
+  gist: >-
+    Prompting is cheaper but needs a good description, and a strong model
+    can write that description for you.
+  said: >-
+    part of the API part of the API tool. <01:22:32.281><c>Yes,
+    </c><01:22:33.159><c>it </c><01:22:34.037><c>is.</c> tool. Yes, it is.
+
+102:
+  gist: >-
+    The usual tools: search, trackers, code execution, calculators, and
+    actions such as sending a message.
+
+103:
+  gist: >-
+    In practice a model is given many functions at once, each with a typed
+    signature.
+
+104:
+  gist: >-
+    All of them are passed in the prompt, which is where the next problem
+    starts.
+
+106:
+  gist: >-
+    Benefits: the model gains reach and loses its knowledge cutoff. Costs:
+    more tools reduce accuracy, context is finite, and defining tools is
+    work.
+
+109:
+  gist: >-
+    Tool selection addresses that: a router picks the few relevant tools
+    before the model sees them.
+  said: >-
+    technical article from Google DeepMind, <01:26:40.936><c>which</c>
+    DeepMind, which DeepMind, which uses <01:26:41.630><c>the
+    </c><01:26:42.075><c>system</c> uses the system uses the system
+    selection <01:26:43.268><c>of </c><01:26:43.927><c>tools.</c> selection
+    of tools.
+
+110:
+  gist: >-
+    The same duplication problem appears at the protocol level: every model
+    provider and every tool used to need its own integration.
+
+112:
+  gist: >-
+    MCP, the Model Context Protocol, replaces the mesh with a standard
+    interface.
+
+113:
+  gist: >-
+    Its architecture: a host application, an MCP client, and servers that
+    expose tools, prompts and resources.
+
+114:
+  gist: >-
+    The example: Claude Desktop as host, a book provider as server, and a
+    request for a poetry recommendation.
+  said: >-
+    you know, MCP from Anthropic. So, <01:31:06.695><c>Claude
+    </c><01:31:06.984><c>will </c><01:31:07.273><c>be
+    </c><01:31:07.562><c>yours.</c> So, Claude will be yours.
+
+115:
+  gist: >-
+    That closes tools, and the lecture moves to agents.
+
+117:
+  gist: >-
+    Definition: an agent autonomously pursues goals and completes tasks on
+    the user's behalf.
+
+119:
+  gist: >-
+    The difference in one picture: a reasoning model thinks, an agent acts,
+    calling tools and other models in a loop.
+  said: >-
+    iteration cycles. And this iteration cycles. And this what
+    <01:32:49.402><c>distinguishes</c> what distinguishes what distinguishes
+    agent <01:32:50.511><c>from</c> agent from agent from tool, tool, in
+    <01:32:52.122><c>simple </c><01:32:52.659><c>words.</c> in simple words.
+
+120:
+  gist: >-
+    ReAct is the pattern: reason, act, observe, repeat, and finally answer.
+
+121:
+  gist: >-
+    The worked example: a teddy bear is cold, and the agent must do
+    something about it.
+  said: >-
+    user request for user request for effective
+    <01:35:36.568><c>formulation.</c> effective formulation.
+
+122:
+  gist: >-
+    The observe step states what is known and what is missing, which is the
+    reasoning-heavy part.
+
+123:
+  gist: >-
+    The plan step names the task: find out the room temperature.
+  said: >-
+    you know what something is unknown, <01:36:10.068><c>and
+    </c><01:36:10.408><c>you</c> unknown, and you unknown, and you need
+    <01:36:11.001><c>to </c><01:36:11.368><c>find
+    </c><01:36:11.735><c>it.</c> need to find it.
+
+125:
+  gist: >-
+    The act step calls the tool that reads the thermostat.
+
+126:
+  gist: >-
+    Then the loop closes: the observation comes back and the next round
+    begins.
+
+128:
+  gist: >-
+    The observation says the room is 65F, about 5F colder than usual, so
+    something must change.
+
+130:
+  gist: >-
+    The plan updates to raising the temperature by five degrees.
+
+132:
+  gist: >-
+    The act step calls the thermostat's setter with that value.
+
+135:
+  gist: >-
+    The new observation confirms the change, and the agent produces its
+    answer.
+
+136:
+  gist: >-
+    The same loop viewed as a component: a thermostat agent, with input and
+    output.
+
+137:
+  gist: >-
+    Real systems have many such agents, one per concern.
+
+138:
+  gist: >-
+    Which raises the question of how agents talk to each other.
+
+139:
+  gist: >-
+    A2A, Agent2Agent, is the standard answer: agents discover each other and
+    exchange tasks.
+  said: >-
+    Do you have a certain Do you have a certain standardization
+    <01:40:09.961><c>of</c> standardization of standardization of what
+    <01:40:10.365><c>an </c><01:40:10.697><c>agent </c><01:40:11.029><c>can
+    </c><01:40:11.361><c>provide.</c> what an agent can provide.
+
+140:
+  gist: >-
+    The protocol's pieces: an agent card advertising skills, an executor
+    that runs them, and a versioned endpoint.
+
+141:
+  gist: >-
+    Safety is the serious part: an agent that can act can cause real harm,
+    and data exfiltration is the canonical example.
+  said: >-
+    a whole range of new a whole range of new potential
+    <01:42:30.632><c>problems.</c> potential problems.
+
+142:
+  gist: >-
+    Remedies at three levels: training, inference-time safeguards, and
+    benchmarks such as Agent-SafetyBench.
+
+143:
+  gist: >-
+    The slide's own note is that this is a very important topic, not a
+    footnote.
+
+144:
+  gist: >-
+    And the news slide showing why: a reported AI-orchestrated espionage
+    campaign.
+
+149:
+  gist: >-
+    Closing thoughts for the whole course: hallucination remains, reasoning
+    is still a bottleneck, finetuning is hard, evaluation is hard, and
+    starting simple beats starting clever.
+  said: >-
+    makes a mistake in forecasting forecasting call
+    <01:46:44.363><c>arguments</c> call arguments call arguments tool.
+    <01:46:45.420><c>So </c><01:46:46.002><c>this
+    </c><01:46:46.584><c>is</c> tool. So this is tool. So this is one
+    <01:46:47.459><c>big </c><01:46:48.151><c>problem.</c> one big problem.
+
+150:
+  gist: >-
+    The bonus: the instructors' own favourite agent is the one that writes
+    code.
+
+151:
+  gist: >-
+    Closing slide of lecture 7.

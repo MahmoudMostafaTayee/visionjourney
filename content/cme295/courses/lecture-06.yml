@@ -1,0 +1,13 @@
+id: lecture-06
+category:
+  id: frontier
+order_index: 5
+translations:
+  en:
+    title: Lecture 6 · Reasoning Models
+    description: 'Models that think before they answer: chain-of-thought, test-time compute, and what
+      changes when a model is trained to reason rather than to reply.'
+    meta_title: Lecture 6 · Reasoning Models — CME 295
+    meta_description: 'Models that think before they answer: chain-of-thought, test-time compute, and
+      what changes when a model is trained to reason rather than to reply.'
+    meta_keywords: reasoning models, chain of thought, test-time compute, RL for reasoning

@@ -1,6 +1,13 @@
 title: "CME 295 · Transformers & LLMs"
 tagline: "A Stanford course, illustrated slide by slide"
-description: "Every slide of Stanford CME 295 (Transformers and Large Language Models, Autumn 2025), parsed and presented one step at a time: from NLP tasks and tokenization to attention, the transformer architecture and an end-to-end example. Slides by Afshine and Shervine Amidi."
+description: "All nine lectures of Stanford CME 295 (Transformers and Large Language Models, Autumn 2025), parsed and presented one step at a time: from NLP tasks and tokenization, through attention and the transformer, to pretraining, preference tuning, reasoning, retrieval, evaluation and multimodality. Slides by Afshine and Shervine Amidi."
+
+# Where a lecture comes from, so tools/import_lecture.py needs no arguments
+# beyond the lecture number. `dir` is left to --src or $SLIDES_DIR: the PDFs
+# are not redistributed here, only the slides rendered from them.
+source:
+  pdf: "fall25-cme295-lecture{n}.pdf"
+  playlist: "https://www.youtube.com/playlist?list=PLoROMvodv4rOCXd21gf0CF4xr35yINeOy"
 
 hero:
   eyebrow: "Stanford CME 295 · Autumn 2025"
@@ -35,7 +42,17 @@ levels:
     rank: "I"
     name: "Foundations"
     tagline: "Language, tokens and the road to attention"
-    description: "Lecture 1 builds the vocabulary the rest of the course assumes: what NLP tasks actually are, how text becomes tokens, how tokens become vectors, why recurrent networks struggled with long context, and what attention and the transformer changed. Read it before any other lecture."
+    description: "Lectures 1 and 2 build the vocabulary the rest of the course assumes: what NLP tasks actually are, how text becomes tokens, how tokens become vectors, why recurrent networks struggled with long context, and what attention and the transformer changed. Lecture 2 adds the parts around the block — position encodings, layer norm, sparse attention — and the BERT family."
+  - id: training
+    rank: "II"
+    name: "Training"
+    tagline: "What it takes to build and align a model"
+    description: "Lectures 3 to 5 move from the architecture to the model: what an LLM is and what its next-token objective implies, how pretraining actually runs on thousands of GPUs, and how a model that merely continues text is taught to do what people prefer."
+  - id: frontier
+    rank: "III"
+    name: "Frontier"
+    tagline: "Reasoning, retrieval, evaluation and other senses"
+    description: "Lectures 6 to 9 cover the parts of the field that are still moving: models trained to reason, retrieval that grounds answers in documents, the unglamorous problem of measuring quality, and the extension of the same architecture to images, audio and code."
 
 timeline:
   - year: "2014"

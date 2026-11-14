@@ -103,7 +103,9 @@ visionjourney/
 │   └── tutorial.py               # the tutorial page presenter (steps + controls)
 ├── tools/
 │   ├── build.py                  # static site baker: content + engine → site/
+│   ├── import_lecture.py         # one command: PDF + captions → lessons + notes queue
 │   ├── import_slides.py          # lecture PDF → slides + slide lessons
+│   ├── align_transcript.py       # captions → which slide each sentence belongs to
 │   └── export_models.py          # PyTorch → ONNX → graph JSON
 ├── assets/css/style.css
 ├── assets/js/{app,viz,graph}.js
@@ -142,9 +144,17 @@ python3 tools/import_slides.py --src /path/to/decks --lecture 1 --report   # ins
 python3 tools/import_slides.py --src /path/to/decks --lecture 1            # write content
 ```
 
-It handles what lecture decks actually do: Beamer overlay builds (several PDF pages animating one slide) are collapsed to the most complete page, the reprinted contents pages become lesson boundaries, and slide titles are read from the page layout rather than guessed from the first line of text. Each remaining slide becomes one `:::slide` step, with its parsed text kept under the image and indexed for search.
+`tools/import_lecture.py` runs the whole chain for a lecture — find the PDF, import it, find the recording, download captions, align them, and open a notes entry per slide — leaving only the prose to write:
 
-Output is regenerated on every run, so hand edits to generated lessons are lost — change the importer instead. The source PDFs stay out of the repository; only the rendered slides and their attribution do. Re-run with `--lecture 2`, `--lecture 3`, … to add the rest of a course.
+```bash
+python3 tools/import_lecture.py --lecture 3 --src /path/to/decks
+```
+
+The lecture's sources are declared in the topic's `site.yml` (`source.pdf`, `source.playlist`), so the lecture number is the only argument needed once `--src` or `$SLIDES_DIR` points at the PDFs. The notes merge is append-only: `gist` text that already exists is never rewritten, so re-running after a better import or a new caption file cannot damage written explanations. Blank `gist` entries are the writing queue, and each new entry arrives with a verbatim quote already drafted from the transcript.
+
+It handles what lecture decks actually do: Beamer overlay builds (several PDF pages animating one slide) are collapsed to the most complete page, the reprinted agenda pages become lesson boundaries — on the right or the left, as the deck draws them — and slide titles are read from the page layout rather than guessed from the first line of text. A deck with no agenda at all is cut into lesson-sized parts named after the slide each one opens on, and any section longer than twenty slides is split the same way, because a wall of eighty slides is not a lesson. Each remaining slide becomes one `:::slide` step, with its parsed text kept under the image and indexed for search.
+
+Output is regenerated on every run, so hand edits to generated lessons are lost — change the importer instead. Stale lessons and leftover images from an earlier parse are cleared, and images that already exist are not re-rendered unless `--force` asks for it. The source PDFs stay out of the repository; only the rendered slides and their attribution do. Re-run with `--lecture 2`, `--lecture 3`, … to add the rest of a course, or pass several `--lecture` flags to do them all at once.
 
 ### Explaining the slides
 

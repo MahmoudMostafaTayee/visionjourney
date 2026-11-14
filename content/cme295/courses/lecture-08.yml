@@ -1,0 +1,13 @@
+id: lecture-08
+category:
+  id: frontier
+order_index: 7
+translations:
+  en:
+    title: Lecture 8 · Evaluating LLMs
+    description: 'How anyone knows a model is good: exact and rule-based metrics, LLM-as-a-judge, agentic
+      evaluation, and the benchmark landscape.'
+    meta_title: Lecture 8 · Evaluating LLMs — CME 295
+    meta_description: 'How anyone knows a model is good: exact and rule-based metrics, LLM-as-a-judge,
+      agentic evaluation, and the benchmark landscape.'
+    meta_keywords: evaluation, BLEU, LLM-as-a-judge, benchmarks, agentic evaluation

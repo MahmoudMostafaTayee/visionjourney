@@ -1,0 +1,494 @@
+# Per-slide notes, keyed by PDF page number. `gist` is the explanation,
+# written by hand; `said` quotes the lecturer.
+
+1:
+  gist: >-
+    Lecture 8: evaluation, the part of the pipeline that decides whether any
+    of the rest worked.
+  said: >-
+    Hello, everyone, and welcome to lecture 8 of CME 295.
+
+4:
+  gist: >-
+    Recap of lecture 7: retrieval, tool calling and agents.
+
+6:
+  gist: >-
+    The weaknesses list from lecture 6, with reasoning and knowledge now
+    addressed by the previous two lectures.
+  said: >-
+    If you remember, our LLM has strengths but also weaknesses that we're
+    trying to mitigate.
+
+7:
+  gist: >-
+    Which leaves evaluation, the last weakness, as today's subject.
+
+11:
+  gist: >-
+    Evaluation covers two different things: the quality of the output, and
+    the performance of the system around it, such as latency and price.
+  said: >-
+    Let's evaluate it based on latency, so more system-related metrics or
+    pricing or how often it is up and so on.
+
+13:
+  gist: >-
+    The ideal is human ratings on model outputs, because humans define what
+    a good answer is.
+  said: >-
+    I ask a human to rate it, and I start again and again.
+
+16:
+  gist: >-
+    Its first problem is subjectivity: two raters shown the same answer and
+    the same criteria can disagree.
+  said: >-
+    Let's suppose I ask my LLM what birthday gift should I get.
+
+19:
+  gist: >-
+    So how much better than chance do the raters actually agree? That
+    question is the foundation of every metric that follows.
+
+23:
+  gist: >-
+    Agreement beyond chance is measured by Cohen's kappa, Fleiss' kappa and
+    Krippendorff's alpha.
+  said: >-
+    But if our observed agreement rate is below the "by pure random chance"
+    agreement rate that we saw on the blackboard, then our coefficient would
+    be negative.
+
+25:
+  gist: >-
+    The second and third problems are simply that human evaluation is slow
+    and expensive.
+
+28:
+  gist: >-
+    Rule-based metrics replace raters with reference labels written once and
+    compared against automatically.
+  said: >-
+    Well, I can make iterations in my model and always compare the outputs
+    of my LLM with this fixed reference, instead of always asking humans to
+    rate that again and again.
+
+30:
+  gist: >-
+    METEOR was built for translation and weights recall more heavily than
+    precision.
+
+32:
+  gist: >-
+    BLEU counts matching n-grams between the output and the reference, which
+    is cheap and correlates only loosely with human judgement.
+
+33:
+  gist: >-
+    ROUGE does the same for summarisation, in several variants that
+    emphasise recall.
+  said: >-
+    You have another one that's being used or that has been used in
+    translation tasks, which is called BLEU, which you may know.
+
+35:
+  gist: >-
+    The fundamental limit: three paraphrases of the same sentence score
+    terribly against each other, because the metric measures wording, not
+    meaning.
+
+37:
+  gist: >-
+    And the correlation with human ratings is weak, while someone still had
+    to write the references.
+  said: >-
+    I mean, you can imagine that people have come up with all these
+    hyperparameters to make it be correlated to human ratings, but they're
+    not that correlated.
+
+45:
+  gist: >-
+    LLM-as-a-judge replaces the reference with a model: give it the prompt,
+    the response and the criteria, and ask for a rationale and a score.
+  said: >-
+    We are able to explain why the metric or the model is giving us a given
+    score.
+
+46:
+  gist: >-
+    An actual judge prompt: rate relevance, explain in one or two sentences,
+    and return 1 or 0.
+  said: >-
+    You're not guaranteed to have a rationale and a score that you can parse
+    because this model has some probabilistic nature to it with the sampling
+    process.
+
+47:
+  gist: >-
+    Judge outputs must be machine-readable, which is the guided decoding
+    from lecture 3.
+
+49:
+  gist: >-
+    Every major provider now exposes structured outputs for exactly this
+    reason.
+
+51:
+  gist: >-
+    The code is two lines: define the response schema, pass it with the
+    request.
+  said: >-
+    Well, typically, you can reference that with the argument text format
+    equal to that representation.
+
+55:
+  gist: >-
+    What judges buy: no reference labels, and a rationale that explains the
+    score.
+
+59:
+  gist: >-
+    Two variations: pointwise scoring of one response, or pairwise
+    comparison of two.
+  said: >-
+    Of course, there are many variations, but there are generally two types
+    of LLM-as-a-Judge that you will see.
+
+64:
+  gist: >-
+    Position bias: a judge prefers whichever answer it saw first, so swap
+    the order and average.
+  said: >-
+    But if the response changes, then it may not be good.
+
+68:
+  gist: >-
+    Verbosity bias: a judge prefers the longer answer even when the shorter
+    one is better, so penalise length or say so explicitly.
+  said: >-
+    The second response is something that goes much more into details, is
+    typically something that is more verbose.
+
+72:
+  gist: >-
+    Self-enhancement bias: a model prefers its own output, which makes
+    judged comparisons against itself meaningless.
+  said: >-
+    Now we will see the third kind of bias that you may see out there, which
+    is called self-enhancement bias.
+
+78:
+  gist: >-
+    Best practices: crisp guidelines, binary scales, rationale before score,
+    bias mitigation, calibration against humans, and low temperature.
+  said: >-
+    The third tip is to make sure to output the rationale before outputting
+    the score.
+
+83:
+  gist: >-
+    The workflow that results: a fast model generates, a judge filters,
+    humans rate the remainder.
+  said: >-
+    score is very high, but the LLM-as-a-Judge score is itself an
+    approximation of human ratings.
+
+86:
+  gist: >-
+    What gets evaluated falls into two families: task performance
+    (usefulness, factuality, relevance) and alignment (tone, style, safety).
+
+89:
+  gist: >-
+    Factuality is the hard case, because a sentence can be half true.
+  said: >-
+    Teddy bears, first created in the 1920s, were named after President
+    Theodore Roosevelt after he proudly wanted to shoot a captured bear on a
+    hunting trip.
+
+92:
+  gist: >-
+    The method decomposes the answer into atomic facts, then checks each one
+    against a source.
+
+93:
+  gist: >-
+    Each fact gets a support score, not just true or false.
+  said: >-
+    Given a piece of text, we want to, I guess, query a knowledge base with
+    the actual fact and then check whether the fact that it's here is
+    actually correct.
+
+95:
+  gist: >-
+    The overall factuality score weights supported facts by their
+    importance, so a small unsupported detail does not sink a good answer.
+
+97:
+  gist: >-
+    Evaluation of agents starts from the ReAct loop from lecture 7.
+
+98:
+  gist: >-
+    A single agentic call has three stages: choose the tool, call it, and
+    write the answer.
+  said: >-
+    It can be observe, plan, act, or it can have other names.
+
+99:
+  gist: >-
+    In practice it is not one loop but many, which multiplies the places it
+    can fail.
+
+100:
+  gist: >-
+    Those three stages are exactly the three failure surfaces.
+  said: >-
+    Let's say, you want to find a bear near you.
+
+101:
+  gist: >-
+    The first is tool prediction: the model chooses badly before anything
+    runs.
+
+105:
+  gist: >-
+    Failure one: the model never calls the tool at all, usually because the
+    router or the prompt did not make it obvious.
+  said: >-
+    Then it's pretty clear we just have to adjust the tool router in order
+    for it to be predicting the right tool.
+
+110:
+  gist: >-
+    Failure two: the model invents a tool that does not exist, often because
+    the API names are illogical or the instructions are vague.
+  said: >-
+    At the very beginning, I was saying, maybe the model is too weak.
+
+114:
+  gist: >-
+    Failure three: it calls a real but wrong tool, sending a message where
+    it should have searched.
+  said: >-
+    Maybe the tool router doesn't know that for this kind of query, you
+    should have the tool that you had in mind as part of the results.
+
+118:
+  gist: >-
+    Failure four: it calls the right tool with the wrong argument, here a
+    location of (0,0).
+
+119:
+  gist: >-
+    The second surface is the call itself.
+
+122:
+  gist: >-
+    The tool can return an error or a wrong value, which is a bug in the
+    tool rather than in the model.
+  said: >-
+    Now we're going to see two more on this tool called step.
+
+125:
+  gist: >-
+    Worse, it can return nothing at all, after which the model tends to
+    invent a plausible result; the remedy is to return something, always.
+  said: >-
+    Here it's a general case just to say that just check your tool
+    implementation.
+
+126:
+  gist: >-
+    The third surface is turning the result into an answer.
+
+131:
+  gist: >-
+    Here the final response ignores what the tool said, or the tool's output
+    is too verbose for the model to use.
+  said: >-
+    But if you put it to the model, let's suppose the model says, I didn't
+    find any bear.
+
+132:
+  gist: >-
+    The summary maps every failure to its stage, which is what makes
+    debugging tractable.
+  said: >-
+    I have just mentioned those that I see very often that I thought could
+    be helpful, but you could definitely see other failure modes.
+
+135:
+  gist: >-
+    The takeaway: failures come from the model, from the tool, or from the
+    interface between them, and each has a different fix.
+  said: >-
+    Another complaint that we have seen is the relevance of what we put in
+    the context window.
+
+138:
+  gist: >-
+    Benchmarks grouped by capability, starting with knowledge: breadth of
+    facts, a reflection of pretraining.
+  said: >-
+    With that in mind, we can delve into the world of benchmarks.
+
+139:
+  gist: >-
+    MMLU: 14,000 multiple-choice questions across 57 subjects, scored by
+    exact match.
+  said: >-
+    There is a question, and then you have four possible answers.
+
+140:
+  gist: >-
+    Sample questions show the breadth: law, history, computer science,
+    elementary maths.
+
+141:
+  gist: >-
+    Reasoning is the next column: multi-step problems, both mathematical and
+    common sense.
+  said: >-
+    A second category that you might see are those that are in the reasoning
+    space.
+
+142:
+  gist: >-
+    AIME takes the maths end: about 30 olympiad problems, answered with a
+    three-digit number.
+
+143:
+  gist: >-
+    The problems are genuinely hard, which is why the benchmark saturates
+    slowly.
+
+144:
+  gist: >-
+    PIQA covers common sense: two options for everyday physical situations,
+    about 20,000 of them.
+  said: >-
+    But it is still reasoning-based questions, but that will rely on your
+    understanding on how things work around you, not necessarily math-based
+    but just everyday life.
+
+145:
+  gist: >-
+    The samples are the sort of thing a child knows and a model has to
+    learn: how to hold a slippery object.
+
+146:
+  gist: >-
+    Coding adds a third column: syntactically correct code, a proxy for tool
+    use.
+
+147:
+  gist: >-
+    SWE-bench takes real GitHub issues: fix the bug so the repository's own
+    tests pass.
+
+148:
+  gist: >-
+    Its evaluation is unusually trustworthy, because the tests already
+    existed before the benchmark did.
+  said: >-
+    But they don't necessarily compare models with respect to a given
+    benchmark.
+
+149:
+  gist: >-
+    Safety is the fourth column, and the last family on the slide.
+
+150:
+  gist: >-
+    HarmBench: 510 harmful behaviours, scored by attack success rate against
+    a classifier.
+  said: >-
+    For example, one example in the standard category of this benchmark
+    tries to entice harmful behavior into executing something that is
+    harmful.
+
+151:
+  gist: >-
+    Its samples show the range: standard requests, copyrighted text,
+    contextual attacks and multimodal inputs.
+
+153:
+  gist: >-
+    For agents, tau-bench puts the model in a simulated airline or retail
+    system with users, tools and policies.
+  said: >-
+    The agent tries to help the user to achieve that goal.
+
+154:
+  gist: >-
+    The task is a conversation, and success means resolving it according to
+    the policy.
+
+157:
+  gist: >-
+    Its distinctive metric is pass^k: the probability that all k attempts
+    succeed, which measures reliability rather than capability.
+  said: >-
+    You want the probability that all of them succeeds, which is why this
+    metric matters.
+
+158:
+  gist: >-
+    The news slide is Gemini 3's launch, three days before this lecture.
+
+159:
+  gist: >-
+    Its chart is the familiar four-axis profile: reasoning, coding, tool
+    use, knowledge.
+
+160:
+  gist: >-
+    Which is the honest role of benchmarks: a projection of performance onto
+    one axis.
+
+161:
+  gist: >-
+    And different models genuinely differ: one is good at code, another is
+    cheap.
+  said: >-
+    Your own use case and your own experience can guide you into having a
+    profile of models that suits your tasks best.
+
+163:
+  gist: >-
+    The Pareto frontier plots quality against cost or latency, and the
+    useful models are on the curve.
+
+165:
+  gist: >-
+    Data contamination is the quiet failure: if the benchmark's questions
+    are in the training set, the score is meaningless.
+
+166:
+  gist: >-
+    Precautions include hashing questions, blocklisting tool names, and
+    using tests that postdate the model.
+
+167:
+  gist: >-
+    And preferring newer benchmark versions over the ones the model may have
+    seen.
+
+168:
+  gist: >-
+    Goodhart's law is the summary of all of this: when a measure becomes a
+    target, it stops being a good measure.
+
+169:
+  gist: >-
+    So do not over-index on benchmarks, add a human-facing signal such as an
+    arena, and try the models yourself.
+  said: >-
+    But I would say, ultimately, should be the one trying out these best
+    models and see for yourself which one corresponds to your best.
+
+170:
+  gist: >-
+    Closing slide of lecture 8.

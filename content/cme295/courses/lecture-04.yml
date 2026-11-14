@@ -1,0 +1,13 @@
+id: lecture-04
+category:
+  id: training
+order_index: 3
+translations:
+  en:
+    title: Lecture 4 · Pretraining, Scale and Fine-Tuning
+    description: 'How models are actually trained: data mixtures, scaling laws, the memory bottleneck,
+      data and model parallelism, Flash Attention, mixed precision, LoRA and QLoRA.'
+    meta_title: Lecture 4 · Pretraining, Scale and Fine-Tuning — CME 295
+    meta_description: 'How models are actually trained: data mixtures, scaling laws, the memory bottleneck,
+      data and model parallelism, Flash Attention, mixed precision, LoRA and'
+    meta_keywords: pretraining, scaling laws, ZeRO, Flash Attention, mixed precision, LoRA, QLoRA

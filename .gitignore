@@ -16,3 +16,6 @@ Thumbs.db
 
 # Draft transcript alignments (working aid, not published)
 *.auto.yml
+
+# Downloaded captions and other working files
+.cache/

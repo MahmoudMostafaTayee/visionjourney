@@ -1,0 +1,13 @@
+id: lecture-03
+category:
+  id: training
+order_index: 2
+translations:
+  en:
+    title: Lecture 3 · Inside an LLM
+    description: 'What an LLM actually is: the terminology, the next-token objective, and the challenges
+      that follow from training on a whole internet of text.'
+    meta_title: Lecture 3 · Inside an LLM — CME 295
+    meta_description: 'What an LLM actually is: the terminology, the next-token objective, and the challenges
+      that follow from training on a whole internet of text.'
+    meta_keywords: LLM anatomy, next token prediction, tokenization at scale, training challenges
