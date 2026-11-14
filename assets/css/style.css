@@ -250,8 +250,47 @@ h1 { font-family: var(--serif); font-weight: 500; }
   color: var(--faint); font-weight: 400;
 }
 .level__head p { margin: 10px 0 0; color: var(--muted); font-size: 15px; max-width: 74ch; }
+/* The topic chooser has no rank column: one full-width text block. */
+.level__head.level__head--plain { grid-template-columns: minmax(0, 1fr); }
 
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+
+/* Imported lecture slides: one deck page per step. */
+.slide {
+  margin: 0; background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
+}
+.slide__cap {
+  display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap;
+  padding: 11px 16px; border-bottom: 1px solid var(--line);
+}
+.slide__n {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--accent); white-space: nowrap;
+}
+.slide__t { font-size: 13.5px; font-weight: 540; color: var(--text); }
+.slide__img { display: block; width: 100%; height: auto; background: #fff; }
+.slide__text { border-top: 1px solid var(--line); padding: 10px 16px 14px; font-size: 13px; color: var(--muted); }
+.slide__text summary {
+  cursor: pointer; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint);
+}
+.slide__text ul { margin: 10px 0 0; padding-left: 18px; }
+.slide__text li + li { margin-top: 4px; }
+
+/* Topic chooser: full-width rows, so one curriculum is not a narrow column. */
+.topics { display: flex; flex-direction: column; gap: 14px; }
+.topicrow {
+  display: grid; grid-template-columns: minmax(0, 1fr) 32px; gap: 22px; align-items: center;
+  padding: 22px 24px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); transition: border-color .2s, background .2s, transform .2s;
+}
+.topicrow:hover { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); background: var(--panel-2); transform: translateY(-1px); }
+.topicrow h3 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.015em; }
+.topicrow p { margin: 0; font-size: 14px; color: var(--muted); max-width: 68ch; }
+.topicrow__meta { margin-top: 10px !important; font-family: var(--mono); font-size: 11.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .07em; }
+.topicrow__arrow { color: var(--faint); font-size: 20px; justify-self: end; }
+.topicrow:hover .topicrow__arrow { color: var(--accent); }
 
 .card {
   display: flex; flex-direction: column; background: var(--panel);

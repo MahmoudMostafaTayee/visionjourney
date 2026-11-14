@@ -22,8 +22,10 @@
   };
 
   /* ------------------------------------------------------------------ theme */
-  const theme = store.get("theme", "dark");
-  if (theme === "light") document.documentElement.dataset.theme = "light";
+  /* Light is the default; a saved choice (or the inline head script for a dark
+     reader) decides otherwise. */
+  const theme = store.get("theme", "light");
+  document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
 
   document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -206,7 +208,7 @@
   function renderResults() {
     if (!results) return;
     if (!matches.length) {
-      results.innerHTML = '<p class="search__empty">No lesson matches. Try “homography”, “batch norm”, “NeRF” or “mAP”.</p>';
+      results.innerHTML = '<p class="search__empty">No lesson matches. Try a broader term.</p>';
       return;
     }
     results.innerHTML = matches
@@ -214,7 +216,7 @@
         (m, i) =>
           `<a class="search__item${i === active ? " is-active" : ""}" href="${root}${m.url}">` +
           `<strong>${escapeHtml(m.title)}</strong>` +
-          `<span>${escapeHtml(m.course)} · ${escapeHtml(m.snippet || "")}</span></a>`
+          `<span>${escapeHtml([m.topic, m.course].filter(Boolean).join(" · "))} · ${escapeHtml(m.snippet || "")}</span></a>`
       )
       .join("");
   }

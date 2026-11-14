@@ -1,0 +1,19 @@
+# Topics are independent curricula. Each id names a folder under content/ that
+# holds its own site.yml, courses/ and lessons/. The build gives every topic its
+# own subtree in site/ and a card on the front page, so adding a topic is a
+# matter of writing content and listing its id here — the engine stays untouched.
+#
+# content/<id>/
+#   site.yml              topic metadata: title, levels, nav, hero copy
+#   courses/*.yml         course metadata
+#   lessons/en/<course>/*.md
+#   RESOURCES.md          optional library page
+#   models/               optional model lab (catalog.json + .onnx + graphs/)
+name: "Madarik"
+tagline: "Open curricula for perception, learning and building"
+description: "مدارك — an open learning platform: independent curricula in computer vision, machine learning and beyond."
+eyebrow: "مدارك · an open learning platform"
+
+topics:
+  - vision
+  - cme295

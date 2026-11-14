@@ -1,0 +1,11 @@
+id: lecture-01
+category:
+  id: foundations
+order_index: 0
+translations:
+  en:
+    title: Lecture 1 · From NLP to the Transformer
+    description: Slide-by-slide companion to lecture 1 of Stanford CME 295.
+    meta_title: Lecture 1 · From NLP to the Transformer — CME 295
+    meta_description: Every slide of lecture 1, illustrated and parsed.
+    meta_keywords: transformers, large language models, lecture 1

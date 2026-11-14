@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Build Vision Journey: a static, dependency-free learning site.
+Build the site: a static, dependency-free learning platform.
 
-Content lives in courses/*.yml and lessons/<lang>/<course>/<lesson>.md as
-markdown with front matter and three Vision Journey directives:
+Content lives in content/<topic>/courses/*.yml and
+content/<topic>/lessons/<lang>/<course>/<lesson>.md as markdown with front
+matter and three directives:
 
     :::demo{id="conv" title="Convolution explorer"} body :::     interactive lab
     :::model{src="resnet18" title="ResNet-18"} :::               ONNX graph viewer
@@ -26,10 +27,10 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
-LANG = "en"
 
 # The content engine lives beside the content, not inside this script.
 sys.path.insert(0, str(ROOT))
+from engine.topics import Topic, load_topics  # noqa: E402
 from engine.tutorial import present_tutorial  # noqa: E402
 
 
@@ -301,7 +302,24 @@ def render_markdown(text: str, ctx: dict) -> str:
                     i += 1
                 inner = render_markdown("\n".join(body_lines), {"headings": []})
 
-                if kind == "demo":
+                if kind == "slide":
+                    number = attrs.get("n", "")
+                    label = rest.strip()
+                    caption = (f'<span class="slide__n">Slide {html.escape(number)}</span>'
+                               if number else "")
+                    if label:
+                        caption += f'<span class="slide__t">{inline(label)}</span>'
+                    alt = f"Slide {number} — {label}".strip(" —")
+                    details = (f'<details class="slide__text"><summary>Text on this slide</summary>{inner}</details>'
+                               if inner.strip() else "")
+                    out.append(
+                        f'<figure class="slide" data-step-label="{html.escape(label, quote=True)}">'
+                        f'<figcaption class="slide__cap">{caption}</figcaption>'
+                        f'<img class="slide__img" src="{html.escape(attrs.get("src", ""), quote=True)}" '
+                        f'alt="{html.escape(alt, quote=True)}" loading="lazy" decoding="async">'
+                        f"{details}</figure>"
+                    )
+                elif kind == "demo":
                     out.append(render_demo(attrs, rest, inner))
                 elif kind == "callout":
                     out.append(render_callout(attrs, inner))
@@ -370,49 +388,6 @@ def render_markdown(text: str, ctx: dict) -> str:
 
 
 # --------------------------------------------------------------------------------------
-# Content loading
-# --------------------------------------------------------------------------------------
-
-def load_site_config() -> dict:
-    return yaml.safe_load((ROOT / "site.yml").read_text(encoding="utf-8"))
-
-
-def split_front_matter(text: str) -> tuple[dict, str]:
-    if not text.startswith("---"):
-        return {}, text
-    end = text.find("\n---", 3)
-    meta = yaml.safe_load(text[3:end]) or {}
-    return meta, text[end + 4 :].lstrip("\n")
-
-
-def load_courses() -> list[dict]:
-    courses = []
-    for path in sorted((ROOT / "courses").glob("*.yml")):
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
-        data["slug"] = path.stem
-        data["en"] = (data.get("translations") or {}).get(LANG, {})
-        courses.append(data)
-    courses.sort(key=lambda c: (c.get("order_index", 99), c["slug"]))
-    return courses
-
-
-def load_lessons(courses: list[dict]) -> dict[str, list[dict]]:
-    by_course: dict[str, list[dict]] = {c["slug"]: [] for c in courses}
-    for path in sorted((ROOT / "lessons" / LANG).glob("*/*.md")):
-        meta, body = split_front_matter(path.read_text(encoding="utf-8"))
-        meta["slug"] = path.stem
-        meta["course"] = path.parent.name
-        meta["body"] = body
-        meta["words"] = len(body.split())
-        meta["minutes"] = max(4, round(meta["words"] / 190))
-        if meta["course"] in by_course:
-            by_course[meta["course"]].append(meta)
-    for lessons in by_course.values():
-        lessons.sort(key=lambda l: l.get("order_index", 99))
-    return by_course
-
-
-# --------------------------------------------------------------------------------------
 # Layout
 # --------------------------------------------------------------------------------------
 
@@ -453,6 +428,11 @@ def course_art(slug: str, index: int) -> str:
     )
 
 
+# Applies a saved dark preference before first paint; light is the default, so
+# the attribute in <html> already covers the common case.
+EARLY_THEME = ('<script>try{if(JSON.parse(localStorage.getItem("vj:theme")) === "dark")'
+              'document.documentElement.dataset.theme = "dark";}catch(e){}</script>')
+
 LOGO = """<svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M2 16s5.2-8 14-8 14 8 14 8-5.2 8-14 8S2 16 2 16z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="16" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="16" r="1.7" fill="currentColor"/></svg>"""
 
 
@@ -467,20 +447,32 @@ def layout(
     nav_active: str = "",
     head_extra: str = "",
     show_sidebar: str = "",
+    topics: list[Topic] | None = None,
 ) -> str:
     root = "../" * depth
+    base = cfg.get("base", "")
     nav = ""
     for item in cfg.get("nav", []):
         active = " is-active" if item["id"] == nav_active else ""
-        nav += f'<a class="nav__link{active}" href="{root}{item["href"]}">{item["label"]}</a>'
+        nav += f'<a class="nav__link{active}" href="{root}{base}{item["href"]}">{item["label"]}</a>'
+    # The platform is a set of topics, so every page can step back out to the list.
+    if topics and len(topics) > 1:
+        nav = f'<a class="nav__link" href="{root}index.html">All topics</a>' + nav
+    # The brand is the platform, not the topic: this site publishes several curricula.
+    brand = cfg.get("platform") or cfg.get("title", "")
+    brand_tagline = cfg.get("platform_tagline", "") or cfg.get("tagline", "")
+    first, _, rest = brand.partition(" ")
+    logo_text = f'<span class="logo__text">{html.escape(first)}<span>{html.escape(rest)}</span></span>' if rest \
+        else f'<span class="logo__text">{html.escape(brand)}</span>'
     return f"""<!doctype html>
-<html lang="en" data-root="{root}">
+<html lang="en" data-root="{root}" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)}</title>
 <meta name="description" content="{html.escape(description)}">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="light dark">
+{EARLY_THEME}
 <link rel="icon" href="{root}assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="{root}assets/css/style.css?v={CSS_V}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -491,7 +483,7 @@ def layout(
 <a class="skip" href="#main">Skip to content</a>
 <header class="topbar">
   <div class="topbar__inner">
-    <a class="logo" href="{root}index.html">{LOGO}<span class="logo__text">Vision<span>Journey</span></span></a>
+    <a class="logo" href="{root}index.html">{LOGO}{logo_text}</a>
     <nav class="nav" aria-label="Primary">{nav}</nav>
     <div class="topbar__actions">
       <button class="searchbtn" type="button" data-search-open aria-label="Search lessons">
@@ -507,7 +499,7 @@ def layout(
 <main id="main">{body}</main>
 <footer class="footer">
   <div class="footer__inner">
-    <p><strong>Vision Journey</strong> — an open curriculum for computer vision, from the camera obscura to foundation models.</p>
+    <p><strong>{html.escape(brand)}</strong> — {inline(brand_tagline)}</p>
     <p class="footer__meta">Content licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a> · Code MIT</p>
   </div>
 </footer>
@@ -526,6 +518,7 @@ def layout(
 
 
 def sidebar(cfg: dict, courses: list[dict], lessons: dict, current_course: str, current_lesson: str, root: str) -> str:
+    base = cfg.get("base", "")
     levels_html = []
     for level in cfg["levels"]:
         group = [c for c in courses if c.get("category", {}).get("id") == level["id"]]
@@ -539,19 +532,19 @@ def sidebar(cfg: dict, courses: list[dict], lessons: dict, current_course: str, 
             if is_current:
                 lesson_items = "".join(
                     f'<li><a class="side__lesson{" is-active" if l["slug"] == current_lesson else ""}" '
-                    f'href="{root}lessons/{c["slug"]}/{l["slug"]}.html" data-lesson-link="{c["slug"]}/{l["slug"]}">'
+                    f'href="{root}{base}lessons/{c["slug"]}/{l["slug"]}.html" data-lesson-link="{base}{c["slug"]}/{l["slug"]}">'
                     f'<span class="side__num">{l.get("order_index", 0):02d}</span>{html.escape(l["title"])}</a></li>'
                     for l in lessons[c["slug"]]
                 )
                 items += (
                     f'<div class="side__course is-current{cls}">'
-                    f'<a class="side__courselink" href="{root}courses/{c["slug"]}.html">{html.escape(c["en"].get("title", c["slug"]))}</a>'
+                    f'<a class="side__courselink" href="{root}{base}courses/{c["slug"]}.html">{html.escape(c["en"].get("title", c["slug"]))}</a>'
                     f"<ul>{lesson_items}</ul></div>"
                 )
             else:
                 items += (
                     f'<div class="side__course{cls}">'
-                    f'<a class="side__courselink" href="{root}courses/{c["slug"]}.html">{html.escape(c["en"].get("title", c["slug"]))}</a></div>'
+                    f'<a class="side__courselink" href="{root}{base}courses/{c["slug"]}.html">{html.escape(c["en"].get("title", c["slug"]))}</a></div>'
                 )
         levels_html.append(
             f'<details class="side__level"{open_attr}><summary>{level["rank"]}. {html.escape(level["name"])}</summary>{items}</details>'
@@ -561,7 +554,7 @@ def sidebar(cfg: dict, courses: list[dict], lessons: dict, current_course: str, 
     # into the 280px sidebar track.
     return (
         '<aside class="sidebar" data-sidebar><div class="sidebar__inner">'
-        f'<a class="side__back" href="{root}index.html">← Full curriculum</a>'
+        f'<a class="side__back" href="{root}{base}index.html">← Full curriculum</a>'
         + "".join(levels_html)
         + "</div></aside>"
     )
@@ -584,7 +577,7 @@ def ordered_pairs(courses: list[dict], lessons: dict) -> list[tuple[dict, dict]]
     return [(c, l) for c in courses for l in lessons.get(c["slug"], [])]
 
 
-def build_path_page(cfg: dict, courses: list[dict], lessons: dict) -> str:
+def build_path_page(cfg: dict, courses: list[dict], lessons: dict, topics: list[Topic]) -> str:
     pairs = ordered_pairs(courses, lessons)
     total = len(pairs)
     total_minutes = sum(l["minutes"] for _, l in pairs)
@@ -633,19 +626,20 @@ def build_path_page(cfg: dict, courses: list[dict], lessons: dict) -> str:
   {levels_html}
 </div>
 </div>"""
-    return layout(cfg=cfg, depth=0, title=f"Guided path — {cfg['title']}",
-                  description=f"A single ordered path through all {total} lessons of Vision Journey, from image formation to research practice.",
+    return layout(cfg=cfg, depth=1, topics=topics, title=f"Guided path — {cfg['title']}",
+                  description=f"A single ordered path through all {total} lessons of {cfg['title']}.",
                   body=body, body_class="page-path", nav_active="path")
 
 
-def build_home(cfg: dict, courses: list[dict], lessons: dict) -> str:
+def build_home(cfg: dict, courses: list[dict], lessons: dict, catalog: dict | None,
+               topics: list[Topic]) -> str:
     total_lessons = sum(len(v) for v in lessons.values())
-    stats = [
-        (str(len(courses)), "courses"),
-        (str(total_lessons), "lessons"),
-        ("9", "interactive labs"),
-        ("5", "inspectable models"),
-    ]
+    features = cfg.get("features", {}) or {}
+    stats = [(str(len(courses)), "courses"), (str(total_lessons), "lessons")]
+    if features.get("labs"):
+        stats.append((str(features["labs"]), "interactive labs"))
+    if catalog:
+        stats.append((str(len(catalog["models"])), "inspectable models"))
     stat_html = "".join(f'<div class="stat"><b>{n}</b><span>{label}</span></div>' for n, label in stats)
 
     levels_html = ""
@@ -682,35 +676,43 @@ def build_home(cfg: dict, courses: list[dict], lessons: dict) -> str:
         for item in cfg.get("timeline", [])
     )
 
+    # The front page of a topic is written by that topic: hero copy and principles
+    # come from its site.yml, so a new subject never needs engine edits.
+    hero = cfg.get("hero", {}) or {}
+    labs_action = ('<a class="btn btn--ghost" href="models.html">Open the model lab</a>'
+                   if catalog else "")
+    principles_html = "".join(
+        f'<div class="principle"><h3>{inline(p["title"])}</h3><p>{inline(p["text"])}</p></div>'
+        for p in cfg.get("principles", []) or []
+    )
+    rail = (f'''  <aside class="hero__rail">
+    <p class="hero__railtitle">{html.escape(hero.get("rail_title", "The short version"))}</p>
+    <ol class="timeline">{history_rail}</ol>
+  </aside>''' if history_rail else "")
+
     body = f"""
 <section class="hero">
   <div class="hero__inner">
-    <p class="eyebrow">An open curriculum · 1960 → today</p>
-    <h1>Learn computer vision the way it <em>actually</em> happened.</h1>
-    <p class="hero__lede">From pinhole cameras and edge detectors to convolutional networks, transformers and Gaussian splatting. Read the ideas, run the math, open the architectures, then reproduce the papers.</p>
+    <p class="eyebrow">{inline(hero.get("eyebrow", "An open curriculum"))}</p>
+    <h1>{inline(hero.get("title", cfg["title"]))}</h1>
+    <p class="hero__lede">{inline(hero.get("lede", cfg.get("description", "")))}</p>
     <div class="hero__actions">
       <a class="btn btn--primary" href="path.html">Start the guided path</a>
-      <a class="btn btn--ghost" href="models.html">Open the model lab</a>
+      {labs_action}
     </div>
     <div class="stats">{stat_html}</div>
   </div>
-  <aside class="hero__rail">
-    <p class="hero__railtitle">The short version</p>
-    <ol class="timeline">{history_rail}</ol>
-  </aside>
+{rail}
 </section>
 
-<section class="principles">
-  <div class="principle"><h3>Read the primary source</h3><p>Every lesson points at the paper, spec or canonical text behind the idea — not just a blog summary.</p></div>
-  <div class="principle"><h3>See inside the model</h3><p>Real ONNX graphs, tensor shapes and layer costs. Zoom into ResNet, ViT and U-Net instead of trusting a diagram.</p></div>
-  <div class="principle"><h3>Build to the research bar</h3><p>Evaluation protocol, ablations, reproducibility and failure modes are taught as first-class skills.</p></div>
-</section>
+{f'<section class="principles">{principles_html}</section>' if principles_html else ''}
 
 {levels_html}
 """
     return layout(
         cfg=cfg,
-        depth=0,
+        depth=1,
+        topics=topics,
         title=f"{cfg['title']} — {cfg['tagline']}",
         description=cfg["description"],
         body=body,
@@ -719,7 +721,8 @@ def build_home(cfg: dict, courses: list[dict], lessons: dict) -> str:
     )
 
 
-def build_level(cfg: dict, courses: list[dict], lessons: dict, level: dict) -> str:
+def build_level(cfg: dict, courses: list[dict], lessons: dict, level: dict,
+                topics: list[Topic]) -> str:
     group = [c for c in courses if c.get("category", {}).get("id") == level["id"]]
     rows = ""
     for c in group:
@@ -736,12 +739,13 @@ def build_level(cfg: dict, courses: list[dict], lessons: dict, level: dict) -> s
 <p class="lede">{inline(level['description'])}</p>
 <div class="stack">{rows}</div>
 </div>"""
-    return layout(cfg=cfg, depth=1, title=f"{level['name']} — {cfg['title']}",
+    return layout(cfg=cfg, depth=2, topics=topics, title=f"{level['name']} — {cfg['title']}",
                   description=level["description"], body=body, body_class="page-level",
                   nav_active="journey")
 
 
-def build_course(cfg: dict, courses: list[dict], lessons: dict, course: dict) -> str:
+def build_course(cfg: dict, courses: list[dict], lessons: dict, course: dict,
+                 topics: list[Topic]) -> str:
     en = course["en"]
     items = ""
     for l in lessons[course["slug"]]:
@@ -779,12 +783,13 @@ def build_course(cfg: dict, courses: list[dict], lessons: dict, course: dict) ->
 <ol class="lessons">{items}</ol>
 {f'<h2 class="block-title">Questions this course answers</h2><div class="faqs">{faqs}</div>' if faqs else ''}
 </div>"""
-    return layout(cfg=cfg, depth=1, title=f"{en['title']} — {cfg['title']}",
+    return layout(cfg=cfg, depth=2, topics=topics, title=f"{en['title']} — {cfg['title']}",
                   description=en.get("meta_description", en.get("description", "")),
                   body=body, body_class="page-course", nav_active="journey")
 
 
-def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, lesson: dict) -> str:
+def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, lesson: dict,
+                 topics: list[Topic]) -> str:
     ctx = {"headings": []}
     content = render_markdown(lesson["body"], ctx)
     flat = ordered_pairs(courses, lessons)
@@ -821,9 +826,9 @@ def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, le
     steps_html, stepper = tutorial.steps_html, tutorial.controls_html
 
     body = f"""<div class="shell">
-{sidebar(cfg, courses, lessons, course["slug"], lesson["slug"], "../../")}
+{sidebar(cfg, courses, lessons, course["slug"], lesson["slug"], "../../../")}
 <div class="shell__content">
-<article class="lesson" data-lesson="{course['slug']}/{lesson['slug']}">
+<article class="lesson" data-lesson="{cfg['base']}{course['slug']}/{lesson['slug']}">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="../../index.html">Curriculum</a><span>/</span>
   <a href="../../levels/{level['id']}.html">{html.escape(level['name'])}</a><span>/</span>
   <a href="../../courses/{course['slug']}.html">{html.escape(course['en']['title'])}</a></nav>
@@ -831,7 +836,7 @@ def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, le
     <p class="eyebrow">Lesson {pos + 1:02d} of {len(flat)} · {lesson['minutes']} min read</p>
     <h1>{html.escape(lesson['title'])}</h1>
     <p class="lede">{inline(lesson.get('description', ''))}</p>
-    <button class="chip" type="button" data-complete="{course['slug']}/{lesson['slug']}">
+    <button class="chip" type="button" data-complete="{cfg['base']}{course['slug']}/{lesson['slug']}">
       <span class="chip__box" aria-hidden="true"></span><span data-complete-label>Mark as complete</span>
     </button>
   </header>
@@ -844,7 +849,7 @@ def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, le
 </article>
 {toc}
 </div></div>"""
-    return layout(cfg=cfg, depth=2, title=f"{lesson['title']} — {course['en']['title']}",
+    return layout(cfg=cfg, depth=3, topics=topics, title=f"{lesson['title']} — {course['en']['title']}",
                   description=lesson.get("meta_description", lesson.get("description", "")),
                   body=body, body_class="page-lesson", nav_active="journey",
                   head_extra=f'<meta name="keywords" content="{html.escape(lesson.get("meta_keywords", ""), quote=True)}">')
@@ -854,7 +859,58 @@ def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, le
 # Extra pages
 # --------------------------------------------------------------------------------------
 
-def build_models_page(cfg: dict, catalog: dict) -> str:
+def content_path(cfg: dict) -> Path:
+    """The topic folder this config belongs to."""
+    return ROOT / "content" / cfg["id"]
+
+
+def build_topics_page(topics: list[Topic]) -> str:
+    """The front page: one row per topic, nothing subject-specific."""
+    platform = yaml.safe_load((ROOT / "topics.yml").read_text(encoding="utf-8")) or {}
+    name = platform.get("name", "Learning Platform")
+    tagline = platform.get("tagline", "")
+    eyebrow = inline(platform.get("eyebrow", "An open learning platform"))
+    plural = "curricula" if len(topics) != 1 else "curriculum"
+
+    rows = ""
+    for topic in topics:
+        lessons = sum(len(v) for v in topic.lessons.values())
+        levels = ", ".join(level.get("name", "") for level in topic.config.get("levels", []))
+        rows += f"""<a class="topicrow" href="{topic.id}/index.html">
+  <div class="topicrow__body">
+    <h3>{html.escape(topic.title)}</h3>
+    <p>{inline(topic.config.get('tagline', ''))}</p>
+    <p class="topicrow__meta">{len(topic.courses)} courses · {lessons} lessons · {html.escape(levels)}</p>
+  </div>
+  <span class="topicrow__arrow" aria-hidden="true">→</span>
+</a>"""
+
+    cfg = {
+        "id": "",
+        "base": "",
+        "title": name,
+        "tagline": tagline,
+        "description": platform.get("description", tagline),
+        "nav": [],
+        "levels": [],
+    }
+    body = f"""<div class="wrap">
+<header class="pagehead">
+  <p class="eyebrow">{eyebrow}</p>
+  <h1>{html.escape(name)}</h1>
+  <p class="lede">{inline(tagline)}</p>
+</header>
+<section class="level">
+  <div class="level__head level__head--plain"><div><h2>{len(topics)} {plural}</h2>
+  <p>Every curriculum is independent content: its own courses, lessons, checks and labs. Pick one to begin.</p></div></div>
+  <div class="topics">{rows}</div>
+</section>
+</div>"""
+    return layout(cfg=cfg, depth=0, title=name, description=cfg["description"],
+                  body=body, body_class="page-home", nav_active="home")
+
+
+def build_models_page(cfg: dict, catalog: dict, topics: list[Topic]) -> str:
     cards = ""
     for m in catalog["models"]:
         cards += f"""<button class="modelcard" type="button" data-model-pick="{m['id']}">
@@ -927,13 +983,13 @@ def build_models_page(cfg: dict, catalog: dict) -> str:
   </div>
 </section>
 </div>"""
-    return layout(cfg=cfg, depth=0, title=f"Model lab — {cfg['title']}",
+    return layout(cfg=cfg, depth=1, topics=topics, title=f"Model lab — {cfg['title']}",
                   description="Inspect real ONNX computer-vision architectures with an interactive graph explorer and Netron.",
                   body=body, body_class="page-models", nav_active="models")
 
 
-def build_resources_page(cfg: dict) -> str:
-    path = ROOT / "RESOURCES.md"
+def build_resources_page(cfg: dict, topics: list[Topic]) -> str:
+    path = content_path(cfg) / "RESOURCES.md"
     ctx = {"headings": []}
     content = render_markdown(path.read_text(encoding="utf-8"), ctx) if path.exists() else "<p>No resources yet.</p>"
     body = f"""<div class="wrap">
@@ -941,43 +997,35 @@ def build_resources_page(cfg: dict) -> str:
 <p class="lede">The primary texts, courses, datasets and tools this curriculum is built on — curated, not scraped.</p></header>
 <div class="prose">{content}</div>
 </div>"""
-    return layout(cfg=cfg, depth=0, title=f"Resources — {cfg['title']}",
-                  description="Curated computer vision books, courses, papers, datasets and tooling.",
+    return layout(cfg=cfg, depth=1, topics=topics, title=f"Resources — {cfg['title']}",
+                  description=f"Curated books, courses, papers, datasets and tooling for {cfg['title']}.",
                   body=body, body_class="page-resources", nav_active="resources")
 
 
-def build_search_index(courses: list[dict], lessons: dict) -> list[dict]:
+def build_search_index(topics: list[Topic]) -> list[dict]:
+    """One index across every topic; results carry the topic they belong to."""
     entries = []
-    for c in courses:
-        for l in lessons[c["slug"]]:
-            text = re.sub(r":::[^\n]*|::option\[[^\]]*\]\{[^}]*\}|[#*`>|-]", " ", l["body"])
-            text = re.sub(r"\s+", " ", text).strip()
-            entries.append({
-                "title": l["title"],
-                "course": c["en"]["title"],
-                "url": f"lessons/{c['slug']}/{l['slug']}.html",
-                "snippet": l.get("description", ""),
-                "text": text[:1600],
-            })
+    for topic in topics:
+        for c in topic.courses:
+            for l in topic.lessons[c["slug"]]:
+                text = re.sub(r":::[^\n]*|::option\[[^\]]*\]\{[^}]*\}|[#*`>|-]", " ", l["body"])
+                text = re.sub(r"\s+", " ", text).strip()
+                entries.append({
+                    "title": l["title"],
+                    "topic": topic.title,
+                    "course": c["en"]["title"],
+                    "url": f"{topic.base}lessons/{c['slug']}/{l['slug']}.html",
+                    "snippet": l.get("description", ""),
+                    "text": text[:1600],
+                })
     return entries
 
 
-def main() -> int:
-    cfg = load_site_config()
-    courses = load_courses()
-    lessons = load_lessons(courses)
-    catalog = json.loads((ROOT / "models" / "catalog.json").read_text(encoding="utf-8"))
-
-    if SITE.exists():
-        shutil.rmtree(SITE)
-    (SITE / "assets").mkdir(parents=True)
-    (SITE / "lessons").mkdir()
-    (SITE / "courses").mkdir()
-    (SITE / "levels").mkdir()
-
+def _copy_shared_assets() -> None:
+    """Assets are shared by every topic; each topic only supplies content."""
     for sub in ("css", "js"):
         shutil.copytree(ROOT / "assets" / sub, SITE / "assets" / sub)
-    (SITE / "assets" / "img").mkdir()
+    (SITE / "assets" / "img").mkdir(parents=True)
     (SITE / "assets" / "img" / "favicon.svg").write_text(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
         '<rect width="32" height="32" rx="8" fill="#0b1220"/>'
@@ -986,34 +1034,95 @@ def main() -> int:
         '<circle cx="16" cy="16" r="1.6" fill="#22d3ee"/></svg>',
         encoding="utf-8",
     )
-    shutil.copytree(ROOT / "models" / "graphs", SITE / "models" / "graphs")
-    for onnx in (ROOT / "models").glob("*.onnx"):
-        (SITE / "models").mkdir(exist_ok=True)
-        shutil.copy2(onnx, SITE / "models" / onnx.name)
-    shutil.copy2(ROOT / "models" / "catalog.json", SITE / "models" / "catalog.json")
-    for art in (ROOT / "images" / "courses").glob("*.svg"):
+
+
+def _copy_topic_assets(topic: Topic) -> dict | None:
+    """Copy a topic's optional assets and return its model catalog, if any."""
+    out = SITE / topic.id
+    models = topic.root / "models"
+    catalog = None
+    if topic.has_models():
+        catalog = json.loads((models / "catalog.json").read_text(encoding="utf-8"))
+        (out / "models" / "graphs").mkdir(parents=True)
+        for graph in (models / "graphs").glob("*.json"):
+            shutil.copy2(graph, out / "models" / "graphs" / graph.name)
+        for onnx in models.glob("*.onnx"):
+            shutil.copy2(onnx, out / "models" / onnx.name)
+        shutil.copy2(models / "catalog.json", out / "models" / "catalog.json")
+    for art in (topic.root / "images").glob("*.svg") if (topic.root / "images").exists() else []:
         shutil.copy2(art, SITE / "assets" / "img" / art.name)
+    # Imported slides live beside the lessons that reference them.
+    slides = topic.root / "slides"
+    if slides.exists():
+        shutil.copytree(slides, out / "slides")
+    return catalog
 
-    (SITE / "index.html").write_text(build_home(cfg, courses, lessons), encoding="utf-8")
-    (SITE / "path.html").write_text(build_path_page(cfg, courses, lessons), encoding="utf-8")
+
+def build_topic(topic: Topic, topics: list[Topic]) -> tuple[int, int]:
+    """Write one topic's subtree. Returns (courses, lessons) built."""
+    cfg, courses, lessons = topic.config, topic.courses, topic.lessons
+    # Only advertise pages this topic actually has content for.
+    cfg["nav"] = [
+        item for item in cfg.get("nav", [])
+        if not (item["id"] == "models" and not topic.has_models())
+        and not (item["id"] == "resources" and not topic.has_resources())
+    ]
+    catalog = _copy_topic_assets(topic)
+    out = SITE / topic.id
+    for sub in ("lessons", "courses", "levels"):
+        (out / sub).mkdir(parents=True, exist_ok=True)
+
+    (out / "index.html").write_text(build_home(cfg, courses, lessons, catalog, topics), encoding="utf-8")
+    (out / "path.html").write_text(build_path_page(cfg, courses, lessons, topics), encoding="utf-8")
     for level in cfg["levels"]:
-        (SITE / "levels" / f"{level['id']}.html").write_text(
-            build_level(cfg, courses, lessons, level), encoding="utf-8")
+        (out / "levels" / f"{level['id']}.html").write_text(
+            build_level(cfg, courses, lessons, level, topics), encoding="utf-8")
     for c in courses:
-        (SITE / "courses" / f"{c['slug']}.html").write_text(
-            build_course(cfg, courses, lessons, c), encoding="utf-8")
-        (SITE / "lessons" / c["slug"]).mkdir(exist_ok=True)
+        (out / "courses" / f"{c['slug']}.html").write_text(
+            build_course(cfg, courses, lessons, c, topics), encoding="utf-8")
+        (out / "lessons" / c["slug"]).mkdir(exist_ok=True)
         for l in lessons[c["slug"]]:
-            (SITE / "lessons" / c["slug"] / f"{l['slug']}.html").write_text(
-                build_lesson(cfg, courses, lessons, c, l), encoding="utf-8")
+            (out / "lessons" / c["slug"] / f"{l['slug']}.html").write_text(
+                build_lesson(cfg, courses, lessons, c, l, topics), encoding="utf-8")
 
-    (SITE / "models.html").write_text(build_models_page(cfg, catalog), encoding="utf-8")
-    (SITE / "resources.html").write_text(build_resources_page(cfg), encoding="utf-8")
+    if catalog:
+        (out / "models.html").write_text(build_models_page(cfg, catalog, topics), encoding="utf-8")
+    if topic.has_resources():
+        (out / "resources.html").write_text(build_resources_page(cfg, topics), encoding="utf-8")
+
+    return len(courses), sum(len(v) for v in lessons.values())
+
+
+def main() -> int:
+    topics = load_topics(ROOT)
+    if not topics:
+        print("No topics found. Check topics.yml and content/<id>/site.yml.")
+        return 1
+
+    # The brand belongs to the platform, the title to the topic: every page shows
+    # the platform in the header and footer, and the topic inside its own pages.
+    platform = yaml.safe_load((ROOT / "topics.yml").read_text(encoding="utf-8")) or {}
+    for topic in topics:
+        topic.config["platform"] = platform.get("name", topic.title)
+        topic.config["platform_tagline"] = platform.get("tagline", "")
+
+    if SITE.exists():
+        shutil.rmtree(SITE)
+    (SITE / "assets").mkdir(parents=True)
+    _copy_shared_assets()
+
+    total_courses = total_lessons = 0
+    for topic in topics:
+        courses, lessons = build_topic(topic, topics)
+        total_courses += courses
+        total_lessons += lessons
+        print(f"  {topic.id}: {lessons} lessons in {courses} courses")
+
+    (SITE / "index.html").write_text(build_topics_page(topics), encoding="utf-8")
     (SITE / "search-index.json").write_text(
-        json.dumps(build_search_index(courses, lessons), ensure_ascii=False), encoding="utf-8")
+        json.dumps(build_search_index(topics), ensure_ascii=False), encoding="utf-8")
 
-    total = sum(len(v) for v in lessons.values())
-    print(f"Built {total} lessons in {len(courses)} courses → {SITE}")
+    print(f"Built {total_lessons} lessons in {total_courses} courses across {len(topics)} topics → {SITE}")
     return 0
 
 

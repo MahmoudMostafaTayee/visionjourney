@@ -1,0 +1,50 @@
+title: "CME 295 · Transformers & LLMs"
+tagline: "A Stanford course, illustrated slide by slide"
+description: "Every slide of Stanford CME 295 (Transformers and Large Language Models, Autumn 2025), parsed and presented one step at a time: from NLP tasks and tokenization to attention, the transformer architecture and an end-to-end example. Slides by Afshine and Shervine Amidi."
+
+hero:
+  eyebrow: "Stanford CME 295 · Autumn 2025"
+  title: "The transformer, one slide at a time."
+  lede: "The original lecture deck, rebuilt as a reading experience: every slide becomes a step, the text on it is parsed and searchable, and Continue walks you through the lecture in the order it was taught."
+  rail_title: "The deck in numbers"
+
+# Optional capabilities this topic uses; the front page only advertises what exists.
+features: {}
+
+principles:
+  - title: "The deck is the source"
+    text: "Nothing is paraphrased: each step is the lecture slide as its authors drew it, reproduced for study with attribution. Errors in the original stay visible."
+  - title: "Parsed, not screenshotted"
+    text: "Each slide's title and body are extracted from the PDF, printed under the image and indexed, so the lecture is searchable rather than a pile of pictures."
+  - title: "One idea per step"
+    text: "Beamer decks build a slide in fragments; those animation states are collapsed, so every Continue advances exactly one idea, as the lecturer intended."
+
+nav:
+  - id: home
+    label: "Curriculum"
+    href: "index.html"
+  - id: path
+    label: "Guided path"
+    href: "path.html"
+  - id: journey
+    label: "Levels"
+    href: "levels/foundations.html"
+
+levels:
+  - id: foundations
+    rank: "I"
+    name: "Foundations"
+    tagline: "Language, tokens and the road to attention"
+    description: "Lecture 1 builds the vocabulary the rest of the course assumes: what NLP tasks actually are, how text becomes tokens, how tokens become vectors, why recurrent networks struggled with long context, and what attention and the transformer changed. Read it before any other lecture."
+
+timeline:
+  - year: "2014"
+    event: "Attention is introduced for machine translation; long sequences stop being a memory problem."
+  - year: "2017"
+    event: "*Attention Is All You Need* replaces recurrence with self-attention in the transformer."
+  - year: "2018"
+    event: "BERT and GPT turn the transformer into a pretraining architecture."
+  - year: "2020"
+    event: "Scaling laws make the architecture a product category."
+  - year: "2025"
+    event: "CME 295 teaches the whole stack, from tokenization to reasoning, in one quarter."

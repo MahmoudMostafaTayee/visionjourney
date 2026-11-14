@@ -1,11 +1,11 @@
-# Contributing to Vision Journey
+# Contributing to Madarik
 
-Vision Journey is a content-first curriculum with a small, dependency-free static site generator. Contributions are welcome for lessons, corrections, interactive labs, models and the resource list.
+Madarik (مدارِك) is a content-first learning platform: independent curricula built by a small, dependency-free static engine. Vision Journey is its first curriculum. Contributions are welcome for lessons, corrections, interactive labs, models, resource lists and new topics.
 
 ## Ground rules
 
 - Keep a pull request focused on one topic, and change no more than a few files unless the change is a curriculum restructure.
-- Write new lessons in English under `lessons/en/`.
+- Write new lessons in English under `content/<topic>/lessons/en/`.
 - Preserve accuracy above all: every factual claim should be checkable against a primary source or a standard text.
 - Run the build and the checks below before opening the PR.
 - Do not add a lesson that duplicates an existing one. Extend or split rather than repeat.
@@ -13,22 +13,43 @@ Vision Journey is a content-first curriculum with a small, dependency-free stati
 ## Repository structure
 
 ```text
-site.yml                                site metadata, levels, timeline
-courses/<course-id>.yml                 course metadata
-lessons/<lang>/<course-id>/<lesson>.md  lesson content
-models/                                 exported ONNX + graph JSON + catalog
-engine/tutorial.py                      tutorial page presenter (steps, Continue)
-engine/blocks.py                        splits rendered lessons into blocks
-tools/build.py                          static site baker
-tools/export_models.py                  PyTorch → ONNX → graph JSON
-assets/{css,js}/                        presentation and interaction
+topics.yml                                    the topics that get published
+content/<topic>/site.yml                      topic metadata, levels, nav, hero copy
+content/<topic>/courses/<course-id>.yml       course metadata
+content/<topic>/lessons/<lang>/<course-id>/<lesson>.md
+content/<topic>/RESOURCES.md                  optional library page
+content/<topic>/models/                       optional ONNX + graph JSON + catalog
+engine/topics.py                              loads topics, courses and lessons
+engine/tutorial.py                            tutorial page presenter (steps, Continue)
+engine/blocks.py                              splits rendered lessons into blocks
+tools/build.py                                static site baker
+tools/export_models.py                        PyTorch → ONNX → graph JSON
+assets/{css,js}/                              presentation and interaction
 ```
 
-IDs and directory names use lowercase kebab-case. A lesson's path must agree with its `lesson_id`, `course_id` and `lang`: `lessons/en/recognition/object-detection.md` belongs to the `recognition` course, has lesson ID `object-detection`, and declares `lang: "en"`.
+A new subject is a new folder under `content/` plus one line in `topics.yml`; the `vision` topic is simply the first one.
+
+## Adding a topic
+
+Topics are content, not code. To add machine learning, deep learning or anything else:
+
+1. Create `content/<id>/site.yml` with `title`, `tagline`, `description`, `levels` and `nav`. Optional blocks:
+   - `hero` — `eyebrow`, `title`, `lede`, `rail_title` for the front page (Markdown emphasis allowed in `title` and `lede`);
+   - `principles` — a list of `{title, text}` cards;
+   - `timeline` — `{year, event}` entries for the front-page rail;
+   - `features.labs` — the number of interactive labs to advertise.
+2. Add courses under `content/<id>/courses/` and lessons under `content/<id>/lessons/en/<course>/`.
+3. Add the id to `topics:` in `topics.yml` and run `python3 tools/build.py`.
+
+The topic gets its own subtree in `site/`, a card on the front page, its own guided path, progress tracking, search entries and reader. Leave out `models/` and `RESOURCES.md` and the model lab and library pages are simply not built or linked. If the topic needs the model lab, copy the export script output into `content/<id>/models/` and point `tools/export_models.py` at that folder.
+
+Do not add subject-specific branches to `tools/build.py` or `engine/`. If a new topic needs a genuinely new kind of page, add a module under `engine/` that takes content in and returns markup — the same way `engine/tutorial.py` does.
+
+IDs and directory names use lowercase kebab-case. A lesson's path must agree with its `lesson_id`, `course_id` and `lang`: `content/vision/lessons/en/recognition/object-detection.md` belongs to the `vision` topic's `recognition` course, has lesson ID `object-detection`, and declares `lang: "en"`.
 
 ## Course metadata
 
-Each course is defined in `courses/<course-id>.yml`:
+Each course is defined in `content/<topic>/courses/<course-id>.yml`:
 
 ```yaml
 id: recognition
@@ -47,7 +68,7 @@ translations:
     meta_keywords: "comma, separated, keywords"
 ```
 
-The filename and `id` must match. `category.id` must be one of the levels in `site.yml` (`foundations`, `deep-vision`, `frontier`), and `order_index` must be unique across the whole curriculum because it determines the global course order.
+The filename and `id` must match. `category.id` must be one of the levels in the topic's `site.yml`, and `order_index` must be unique across that topic because it determines the course order there.
 
 The three FAQs are rendered on the course page and used for search snippets. Write them as real learner questions, not as marketing copy.
 
@@ -121,7 +142,7 @@ Lower the threshold and watch noise enter as spurious edges.
 
 Available IDs are defined in `assets/js/viz.js`: `convolution`, `histogram`, `edges`, `pinhole`, `stereo`, `receptive`, `optimizer`, `diffusion`, `iou`. Adding a lab means adding a function to the `DEMOS` registry; it receives the stage element and must build its own controls.
 
-Model graphs are embedded by ID from `models/graphs/`:
+Model graphs are embedded by ID from the topic's `models/graphs/`:
 
 ```markdown
 :::model{src="resnet-mini"} ResNet-Mini: identity shortcuts as graph edges
@@ -146,9 +167,9 @@ Inline math uses single dollars: `$x = fX/Z$`. Display math uses double dollars 
 
 `tools/export_models.py` defines each architecture as a small `nn.Module`, exports it with `torch.onnx.export`, runs shape inference, and writes:
 
-- `models/<id>.onnx` — the real model file, inspectable in Netron;
-- `models/graphs/<id>.json` — nodes, edges, shapes and parameter counts;
-- `models/catalog.json` — the metadata shown on the Model Lab page.
+- `content/<topic>/models/<id>.onnx` — the real model file, inspectable in Netron;
+- `content/<topic>/models/graphs/<id>.json` — nodes, edges, shapes and parameter counts;
+- `content/<topic>/models/catalog.json` — the metadata shown on the Model Lab page.
 
 To change a model, edit the module and the `MODELS_SPEC` entry (including its stage rules for graph collapsing), then:
 
@@ -184,7 +205,7 @@ A useful content check:
 
 ```bash
 # every lesson has exactly three checks and a Summary
-for f in lessons/en/*/*.md; do
+for f in content/*/lessons/en/*/*.md; do
   n=$(grep -c '^:::single-choice' "$f")
   s=$(grep -c '^## Summary' "$f")
   printf '%-70s checks=%s summary=%s\n' "$f" "$n" "$s"
@@ -209,7 +230,7 @@ python3 -m trafilatura.cli --validate-seo site
 
 ## Translation
 
-This repository currently ships English content only. A translation directory may be added under `lessons/<lang>/`; it must mirror the course structure and preserve all IDs, code, links, paths and directive syntax. Do not add machine-generated translations without native review.
+This repository currently ships English content only. A translation directory may be added under `content/<topic>/lessons/<lang>/`; it must mirror the course structure and preserve all IDs, code, links, paths and directive syntax. Do not add machine-generated translations without native review.
 
 ## Commit messages
 

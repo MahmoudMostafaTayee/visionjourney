@@ -50,6 +50,11 @@ def _steps(blocks: list[str]) -> list[tuple[list[str], str]]:
             return
         group = pending + body
         title = next((_text(b) for b in group if starts_with(b, *HEADING_TAGS)), "")
+        # A slide can name itself without a heading, so the control bar still
+        # says what you are looking at.
+        if not title:
+            label = re.search(r'data-step-label="([^"]*)"', group[0])
+            title = html.unescape(label.group(1)) if label else ""
         steps.append((group, title or section))
         pending, body = [], []
 
@@ -62,6 +67,11 @@ def _steps(blocks: list[str]) -> list[tuple[list[str], str]]:
         elif starts_with(block, "p"):
             if body:
                 flush()
+            body.append(block)
+        elif starts_with(block, "figure") and any(starts_with(b, "figure") for b in body):
+            # One figure per step: a slide follows a slide, not the text of the
+            # slide before it. A figure after a paragraph still belongs to it.
+            flush()
             body.append(block)
         else:
             # Lists, code, figures, callouts and checks belong to the paragraph

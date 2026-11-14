@@ -7,9 +7,9 @@ onnx.shape_inference so the explorer shows true tensor shapes, parameter counts
 and skip-connection edges.
 
 Outputs:
-    models/<id>.onnx
-    models/graphs/<id>.json
-    models/catalog.json
+    content/<topic>/models/<id>.onnx
+    content/<topic>/models/graphs/<id>.json
+    content/<topic>/models/catalog.json
 
 Usage: python3 tools/export_models.py
 """
@@ -27,7 +27,9 @@ import torch.nn.functional as F
 from onnx import shape_inference
 
 ROOT = Path(__file__).resolve().parent.parent
-MODELS = ROOT / "models"
+# The exported architectures belong to the vision topic; another topic with a
+# model lab would point this at its own content/<id>/models folder.
+MODELS = ROOT / "content" / "vision" / "models"
 GRAPHS = MODELS / "graphs"
 
 

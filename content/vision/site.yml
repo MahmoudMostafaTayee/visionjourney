@@ -2,6 +2,24 @@ title: "Vision Journey"
 tagline: "From the camera obscura to foundation models"
 description: "A free, deep computer vision curriculum: image formation, classical vision, deep learning, 3D, generative models and research practice — with interactive labs and real ONNX architectures."
 
+hero:
+  eyebrow: "An open curriculum · 1960 → today"
+  title: "Learn computer vision the way it *actually* happened."
+  lede: "From pinhole cameras and edge detectors to convolutional networks, transformers and Gaussian splatting. Read the ideas, run the math, open the architectures, then reproduce the papers."
+  rail_title: "The short version"
+
+# Optional capabilities this topic uses; the front page only advertises what exists.
+features:
+  labs: 9
+
+principles:
+  - title: "Read the primary source"
+    text: "Every lesson points at the paper, spec or canonical text behind the idea — not just a blog summary."
+  - title: "See inside the model"
+    text: "Real ONNX graphs, tensor shapes and layer costs. Zoom into ResNet, ViT and U-Net instead of trusting a diagram."
+  - title: "Build to the research bar"
+    text: "Evaluation protocol, ablations, reproducibility and failure modes are taught as first-class skills."
+
 nav:
   - id: home
     label: "Curriculum"
