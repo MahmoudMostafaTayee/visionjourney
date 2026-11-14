@@ -310,6 +310,12 @@ def render_markdown(text: str, ctx: dict) -> str:
                     if label:
                         caption += f'<span class="slide__t">{inline(label)}</span>'
                     alt = f"Slide {number} — {label}".strip(" —")
+                    note = (ctx.get("notes") or {}).get(number) or {}
+                    gist = inline(note["gist"]) if note.get("gist") else ""
+                    said = inline(note["said"]) if note.get("said") else ""
+                    plain = (f'<div class="slide__note"><span class="slide__notehead">In plain words</span>'
+                             f"<p>{gist}</p></div>" if gist else "")
+                    quote = (f'<blockquote class="slide__said">{said}</blockquote>' if said else "")
                     details = (f'<details class="slide__text"><summary>Text on this slide</summary>{inner}</details>'
                                if inner.strip() else "")
                     out.append(
@@ -317,7 +323,7 @@ def render_markdown(text: str, ctx: dict) -> str:
                         f'<figcaption class="slide__cap">{caption}</figcaption>'
                         f'<img class="slide__img" src="{html.escape(attrs.get("src", ""), quote=True)}" '
                         f'alt="{html.escape(alt, quote=True)}" loading="lazy" decoding="async">'
-                        f"{details}</figure>"
+                        f"{plain}{quote}{details}</figure>"
                     )
                 elif kind == "demo":
                     out.append(render_demo(attrs, rest, inner))
@@ -788,9 +794,18 @@ def build_course(cfg: dict, courses: list[dict], lessons: dict, course: dict,
                   body=body, body_class="page-course", nav_active="journey")
 
 
+def load_notes(cfg: dict, course: str) -> dict[str, dict]:
+    """Per-slide explanations for an imported course, keyed by slide number."""
+    path = content_path(cfg) / "notes" / f"{course}.yml"
+    if not path.exists():
+        return {}
+    notes = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return {str(k): v for k, v in notes.items() if isinstance(v, dict)}
+
+
 def build_lesson(cfg: dict, courses: list[dict], lessons: dict, course: dict, lesson: dict,
                  topics: list[Topic]) -> str:
-    ctx = {"headings": []}
+    ctx = {"headings": [], "notes": load_notes(cfg, course["slug"])}
     content = render_markdown(lesson["body"], ctx)
     flat = ordered_pairs(courses, lessons)
     pos = next(i for i, (c, l) in enumerate(flat)
@@ -1007,8 +1022,12 @@ def build_search_index(topics: list[Topic]) -> list[dict]:
     entries = []
     for topic in topics:
         for c in topic.courses:
+            notes = load_notes(topic.config, c["slug"])
             for l in topic.lessons[c["slug"]]:
                 text = re.sub(r":::[^\n]*|::option\[[^\]]*\]\{[^}]*\}|[#*`>|-]", " ", l["body"])
+                # Slide explanations are the most searchable prose a deck has.
+                pages = re.findall(r'n="(\d+)"', l["body"])
+                text += " " + " ".join(notes[p]["gist"] for p in pages if (notes.get(p) or {}).get("gist"))
                 text = re.sub(r"\s+", " ", text).strip()
                 entries.append({
                     "title": l["title"],

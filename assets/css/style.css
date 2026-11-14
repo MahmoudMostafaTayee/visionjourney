@@ -270,6 +270,20 @@ h1 { font-family: var(--serif); font-weight: 500; }
 }
 .slide__t { font-size: 13.5px; font-weight: 540; color: var(--text); }
 .slide__img { display: block; width: 100%; height: auto; background: #fff; }
+.slide__note { padding: 15px 18px 17px; border-top: 1px solid var(--line); background: var(--panel-2); }
+.slide__notehead {
+  display: block; margin-bottom: 7px; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent);
+}
+.slide__note p { margin: 0; font-size: 14.5px; line-height: 1.62; color: var(--text); max-width: 74ch; }
+.slide__said {
+  margin: 0; padding: 12px 18px 14px 32px; font-size: 13.5px; line-height: 1.6;
+  color: var(--muted); border-top: 1px solid var(--line); position: relative; font-style: italic;
+}
+.slide__said::before {
+  content: "“"; position: absolute; left: 12px; top: 8px; font-family: var(--serif);
+  font-size: 26px; color: var(--line-strong); line-height: 1;
+}
 .slide__text { border-top: 1px solid var(--line); padding: 10px 16px 14px; font-size: 13px; color: var(--muted); }
 .slide__text summary {
   cursor: pointer; font-family: var(--mono); font-size: 10.5px;

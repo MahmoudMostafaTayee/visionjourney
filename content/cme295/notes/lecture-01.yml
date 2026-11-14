@@ -1,0 +1,416 @@
+# In-plain-words notes for the imported CME 295 slides, keyed by PDF page number.
+#
+# `gist` is written for a reader who has not seen the lecture: what the slide is
+# saying and why it matters. `said` quotes the lecturer, verbatim from the
+# captions, only where one line does the job better than a paraphrase.
+# `tools/align_transcript.py` drafts the transcript alignment that these notes
+# are written from; the draft is a working aid and is not published.
+
+1:
+  gist: >-
+    Opening slide: this is CME 295, Transformers and Large Language Models,
+    taught by Afshine and Shervine Amidi.
+  said: >-
+    Hello everyone, and welcome to CME 295 — Transformers and Large Language
+    Models.
+
+3:
+  gist: >-
+    The instructors introduce themselves: twin brothers who studied together at
+    Centrale Paris, then went to MIT and Stanford, worked at Uber and Google, and
+    have been teaching NLP together for years.
+  said: >-
+    We're twin brothers, and we actually had a similar background.
+
+5:
+  gist: >-
+    Why the course exists and what it promises. LLMs are everywhere, so the
+    course has two goals: understand the mechanism that makes them work — the
+    transformer — and learn how they are trained and where they are applied.
+  said: >-
+    The first one is to learn about the underlying mechanism that makes all this
+    work.
+
+7:
+  gist: >-
+    Logistics: Fridays 3:30–5:20 in Thornton 110, two units, letter or
+    credit/no-credit. Lectures are recorded, and grading is two exams — a midterm
+    on 24 October and a final in the week of 8 December.
+
+9:
+  gist: >-
+    Where the material lives: cme295.stanford.edu holds the syllabus, slides and
+    recordings, and the textbook is the *Super Study Guide: Transformers & Large
+    Language Models*.
+
+10:
+  gist: >-
+    The companion VIP cheatsheet condenses the whole course onto a few pages. It
+    is on GitHub, has been translated into eleven languages, and is a fast way to
+    revise before an exam.
+
+12:
+  gist: >-
+    How the class communicates: announcements on Canvas, questions on Ed
+    Discussion, and a staff mailing list. Questions asked in the room are repeated
+    for the recording.
+
+13:
+  gist: >-
+    How to read the deck: one concept per slide, and the footer credits the
+    source and points at further reading if you want to dig deeper.
+
+14:
+  gist: >-
+    Two disclaimers. Two hours a week cannot cover the whole field, and NLP is
+    dense with abbreviations — the course is designed to give you a mental map of
+    them rather than to hide behind them.
+  said: >-
+    You will see that the field is full of abbreviations.
+
+15:
+  gist: >-
+    The abbreviations are grouped into families — transformer-based models such
+    as BERT, T5 and GPT, and miscellaneous techniques such as LSTM, GloVe and RAG
+    — and the course fills in each group as it goes.
+
+19:
+  gist: >-
+    NLP is computing over text, and its tasks fall into three buckets:
+    classification (one label per text, such as sentiment or intent),
+    multi-classification (a label per token or span) and text-to-text generation.
+  said: >-
+    NLP stands for Natural Language Processing. And it is a field that is around
+    manipulating text.
+
+21:
+  gist: >-
+    Classification example: a review goes in and positive, negative or neutral
+    comes out. IMDb, Amazon and X posts supply the data; accuracy, precision,
+    recall and F1 score the output, because a model that always guesses the
+    majority class is not actually useful.
+
+23:
+  gist: >-
+    Multi-classification example: named entity recognition labels every token, so
+    a teddy bear in a sentence is tagged as an entity. Metrics are then computed
+    per token or per entity type rather than per sentence.
+
+25:
+  gist: >-
+    Text-to-text example: machine translation from English to French. Paired data
+    such as WMT provides the examples, and evaluation is the hard part — many
+    translations are correct, so reference-based metrics like BLEU are used.
+
+26:
+  gist: >-
+    The field did not start in 2022. RNNs date from the 1980s, LSTMs from the
+    1990s, word2vec made embeddings useful, the 2017 transformer supplied the
+    architecture, and scale in data and compute turned it into today's LLMs.
+  said: >-
+    LLMs have been a hot topic since 2022. But actually, the field goes way back,
+    way before that year.
+
+29:
+  gist: >-
+    A model cannot read characters, so text has to be cut into units called
+    tokens. The sentence "A cute teddy bear is reading." is the running example
+    for every splitting scheme that follows.
+  said: >-
+    How can you cut this sentence to pass it to a model? So this part is called
+    tokenization.
+
+31:
+  gist: >-
+    The crudest scheme splits on arbitrary character groups, so "A" or "a." can
+    be a token on its own. It is simple, but it produces a large vocabulary of
+    pieces that carry no meaning.
+
+32:
+  gist: >-
+    Subword schemes cut rare words into frequent pieces — "ted" plus "##dy" —
+    so an unseen word needs no new vocabulary entry, at the cost of a longer
+    sequence of tokens.
+
+33:
+  gist: >-
+    The trade-offs. Word-level tokens are interpretable but treat "bear" and
+    "bears" as unrelated, forcing the model to learn their similarity from
+    scratch. Subword tokens generalise better but make sequences longer. What
+    matters is that a token can end up with a meaningful vector.
+  said: >-
+    One con with doing this at the word level is you will end up with words that
+    look similar, but that are actually considered as different tokens.
+
+36:
+  gist: >-
+    Tokens now need vectors. The naive encoding is one-hot: each token gets its
+    own axis, which makes every pair of distinct tokens exactly as unrelated as
+    any other pair.
+
+37:
+  gist: >-
+    word2vec takes the indirect route: train a small network on a proxy task over
+    billions of words and keep the embedding layer it learns. Predicting a word
+    from its context (CBOW) or a context from a word (skip-gram) is the excuse;
+    the vectors are the result.
+  said: >-
+    Word2vec was really one of the pioneering work in just computing meaningful
+    embeddings.
+
+38:
+  gist: >-
+    The architecture behind it: a one-hot input of vocabulary size V, one hidden
+    layer of size d, and an output of size V again. The hidden representation —
+    or the weights leading to it — is the embedding, and d is its dimension.
+
+42:
+  gist: >-
+    A training step. The one-hot token is projected to a dense hidden vector such
+    as [0.2, 0.4, …], the output layer scores the surrounding vocabulary, and the
+    error nudges the embedding so that the token moves closer to the words it
+    appears with.
+
+46:
+  gist: >-
+    The next step on the same sentence: another target token goes through the
+    same projection and output layer, and the shared embedding table is updated
+    again — which is why words with shared contexts end up close together.
+
+48:
+  gist: >-
+    Repeated over a corpus, every word plays both roles. Similarity comes out of
+    the data: "bear" and "teddy" end up near each other because they predict the
+    same neighbours.
+
+49:
+  gist: >-
+    The same objective with a sequence model instead of a fixed window: a
+    recurrent network reads the sentence token by token and predicts the next
+    word from a carried hidden state.
+
+51:
+  gist: >-
+    Recurrent networks process text one step at a time, carrying a hidden state
+    that summarises everything read so far. That state is the entire memory of
+    the model.
+  said: >-
+    RNNs were used for a bunch of tasks, and just like mapping that back to the
+    categories that we saw before.
+
+61:
+  gist: >-
+    For classification, the hidden state after the final token stands in for the
+    whole sentence, and a small head maps that vector to a label.
+
+62:
+  gist: >-
+    The same recipe serves all three task families: the last hidden state for
+    classification, the state at the token of interest for multi-classification,
+    and the final context vector to start decoding for generation.
+
+63:
+  gist: >-
+    LSTMs add a cell state plus gates that decide what to keep and what to
+    forget, so information can survive many more steps than a plain hidden state
+    allows.
+
+64:
+  gist: >-
+    The comparison that ends the recurrence era. Simple methods are fast but
+    ignore order; RNNs are context-aware but slow and forgetful. The forgetfulness
+    has a name — the vanishing gradient — and it is what attention was invented
+    to fix.
+  said: >-
+    So you will see in the literature that this phenomenon is called vanishing
+    gradient.
+
+68:
+  gist: >-
+    Attention (2014, machine translation) gives the decoder a direct link to
+    every encoder state and lets it weight the ones it needs. The source sentence
+    no longer has to fit through a single vector.
+  said: >-
+    People have tried having more direct connections between something and the
+    thing from the past, and this is the idea behind attention.
+
+72:
+  gist: >-
+    The 2017 transformer removes recurrence: every token attends to every other
+    token at once, so a sentence is processed in parallel rather than step by
+    step. That is self-attention, and it is what made scale possible.
+  said: >-
+    Let the model just have direct connections with all parts of the text at
+    once. So that is called self-attention.
+
+76:
+  gist: >-
+    Attention is a soft lookup. A query is compared against every key to score
+    similarity, the scores are normalised, and the output is the weighted mixture
+    of the values.
+  said: >-
+    We're going to compare the query to the key to quantify how similar your
+    query is to a given key, and take the corresponding value.
+
+78:
+  gist: >-
+    Queries, keys and values are not separate inputs: they are learned linear
+    projections Wq, Wk and Wv of the same embeddings, and softmax over the scaled
+    scores turns similarity into a probability distribution.
+
+80:
+  gist: >-
+    The architecture has two stacks. The encoder turns the source sentence into
+    context-aware embeddings; the decoder produces the translation one token at a
+    time, reading the encoder's output through cross-attention.
+  said: >-
+    An architecture that is composed of two parts, an encoder, which is on the
+    left side, and a decoder, which is on the right side.
+
+81:
+  gist: >-
+    The input side: tokenize, embed each token, then add position information.
+    Self-attention is order-blind — permuting the tokens permutes the outputs —
+    so position has to be injected explicitly.
+  said: >-
+    You don't have this sense of order... which is why you have position
+    encodings, which are there to inform on the position of the word in the
+    sequence.
+
+82:
+  gist: >-
+    The trick for position is addition, not concatenation: a position-dependent
+    vector is summed into the embedding, either as fixed sinusoids or as learned
+    parameters, and the sum is what enters the block.
+
+83:
+  gist: >-
+    One encoder layer is multi-head self-attention followed by a feed-forward
+    network, each wrapped in a residual connection and layer norm. Stacking N of
+    them refines the representation layer by layer.
+
+84:
+  gist: >-
+    Decoding starts from BOS and is fed the translation produced so far, shifted
+    right, so that predicting position t can only see tokens before t.
+
+85:
+  gist: >-
+    A decoder layer has three parts: causal self-attention over the output so
+    far, cross-attention into the encoder's states, and a feed-forward block. The
+    resulting vector is turned into a score for every vocabulary entry.
+  said: >-
+    You have a vector that you then go through softmax. And it just is a way for
+    you to guess what is the next word.
+
+86:
+  gist: >-
+    The output head emits one score per vocabulary item. The best-scoring token
+    (or a sampled one, if you want variety) becomes the next word and is fed back
+    into the decoder.
+
+87:
+  gist: >-
+    Multi-head attention runs the same computation several times in parallel
+    with different learned projections, so different heads can specialise — the
+    same idea as multiple filters in a convolution.
+  said: >-
+    It is similar to having multiple filters in your convolution.
+
+88:
+  gist: >-
+    Label smoothing replaces "this word, 100%" with a softer target, because many
+    continuations are valid ("what a great day / lecture / book"). It regularises
+    training and is one of the small tricks that made the original model work.
+
+96:
+  gist: >-
+    The second half of the lecture rebuilds the whole pipeline by hand on one
+    sentence. It starts with tokenization, then adds BOS and EOS so the model
+    knows where the sequence begins and ends.
+  said: >-
+    Let's take our favorite example again. So a cute teddy bear is reading.
+
+104:
+  gist: >-
+    Each token's embedding plus its positional encoding becomes a column of a
+    matrix, and stacked columns give the d_model × n input the encoder consumes.
+
+105:
+  gist: >-
+    The two axes are the embedding size d_model and the sequence length n. Every
+    operation inside the block preserves this shape, which is what makes stacking
+    layers trivial.
+
+107:
+  gist: >-
+    Self-attention scores form an n × n grid: each row is one token's attention
+    over all tokens, after the softmax has made it a distribution.
+
+109:
+  gist: >-
+    The input representation is complete — tokenization, embeddings and
+    positions — and this is the last chance to sanity-check shapes and token
+    order before it enters the encoder.
+
+111:
+  gist: >-
+    A pause before the encoder: the matrix on screen is exactly the input the
+    next step will project into queries, keys and values.
+
+114:
+  gist: >-
+    The matrix enters the encoder, where it is projected three ways — Wq, Wk, Wv
+    — into queries, keys and values.
+
+116:
+  gist: >-
+    Then the attention formula is applied: score every query against every key,
+    scale by √dk so the softmax does not saturate, normalise each row, and mix
+    the values with those weights.
+  said: >-
+    Softmax of Qk transpose over square root of dk times v.
+
+117:
+  gist: >-
+    The projections are unconstrained — the model learns whatever it finds useful
+    — and the encoder block is repeated N times, so each stack produces a more
+    context-aware representation of every token.
+  said: >-
+    You want to have enough degrees of freedom for the model to learn useful
+    representations.
+
+128:
+  gist: >-
+    The decoder's feed-forward network produces one logit per vocabulary word,
+    and the softmax turns them into probabilities ([0.001, 0.0003, …, 0.4, …]):
+    one distribution over every possible next token.
+
+129:
+  gist: >-
+    Decoding starts at BOS. The first self-attention is causal, so a position
+    sees only itself and what came before, and cross-attention then reads the
+    encoder's keys and values.
+  said: >-
+    You start with the BOS token. Basically saying to the model, hey, we need to
+    predict the next word.
+
+133:
+  gist: >-
+    The predicted token is appended and fed back in, and the loop stops when the
+    model emits EOS. That is how "Un ours en peluche mignon lit" gets built one
+    token at a time.
+  said: >-
+    When do you stop? It's a question for you all. When you hit the EOS token.
+
+134:
+  gist: >-
+    The result is a complete translation, produced the way the 2017 paper did
+    machine translation. Translation was the demonstration; the architecture
+    itself is general.
+
+135:
+  gist: >-
+    Lecture 1 ends with the pipeline complete: text becomes tokens, tokens become
+    context-aware vectors, and vectors become the next token. The rest of the
+    course scales this up to LLMs.

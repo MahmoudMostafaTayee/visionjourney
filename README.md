@@ -91,6 +91,7 @@ visionjourney/
 │   ├── courses/<course-id>.yml   # course metadata (title, description, FAQs, SEO)
 │   ├── lessons/en/<course>/<lesson>.md
 │   ├── slides/<course>/*.webp    # optional: imported lecture slides
+│   ├── notes/<course>.yml        # optional: per-slide explanations
 │   ├── RESOURCES.md              # optional library page
 │   └── models/                   # optional model lab
 │       ├── *.onnx                # exported, inspectable models
@@ -144,6 +145,30 @@ python3 tools/import_slides.py --src /path/to/decks --lecture 1            # wri
 It handles what lecture decks actually do: Beamer overlay builds (several PDF pages animating one slide) are collapsed to the most complete page, the reprinted contents pages become lesson boundaries, and slide titles are read from the page layout rather than guessed from the first line of text. Each remaining slide becomes one `:::slide` step, with its parsed text kept under the image and indexed for search.
 
 Output is regenerated on every run, so hand edits to generated lessons are lost — change the importer instead. The source PDFs stay out of the repository; only the rendered slides and their attribution do. Re-run with `--lecture 2`, `--lecture 3`, … to add the rest of a course.
+
+### Explaining the slides
+
+A slide alone rarely teaches; `content/<topic>/notes/<course>.yml` holds one explanation per slide, keyed by PDF page number, and the build prints it under the image:
+
+```yaml
+29:
+  gist: >-
+    What the slide is saying, for a reader who was not in the room.
+  said: >-
+    An optional verbatim line from the lecturer.
+```
+
+The importer writes the lesson; the notes file is written by hand, one entry at a time, so a deck can be published first and explained gradually. Notes are also folded into the search index, which makes a slide searchable by what it *means* rather than by the words printed on it.
+
+When the lecture recording is available, `tools/align_transcript.py` makes the writing accurate instead of guessed:
+
+```bash
+yt-dlp --skip-download --write-auto-subs --sub-langs en --sub-format vtt <video-url>
+python3 tools/align_transcript.py --vtt <captions>.vtt --course lecture-01 --report
+python3 tools/align_transcript.py --vtt <captions>.vtt --course lecture-01 --write
+```
+
+Captions carry no slide numbers and the deck carries no timestamps, so the two are matched as one monotonic partition of the transcript — every sentence belongs to exactly one slide, slides keep their order, and the total match is maximised. The draft it writes (`*.auto.yml`, git-ignored) is a working aid: the published notes are written from it in plain language, because a transcript narrates a lecture rather than summarising a slide.
 
 ## Engine and content
 
